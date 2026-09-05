@@ -1,0 +1,15 @@
+# A steerable MEMS-mirror class sensor, of the kind that can genuinely be told
+# where to look (AEye 4Sight and similar). Narrower field of view than a
+# spinning sensor, but rays can be placed on demand — so here a saved ray is a
+# laser pulse not fired, not merely a point not processed.
+name: mems_steerable
+n_beams: 128
+v_fov_min_deg: -12.0
+v_fov_max_deg: 12.0
+n_azimuth: 512
+az_min_deg: -60.0
+az_max_deg: 60.0
+max_range: 200.0
+frame_rate_hz: 10.0
+mount_height: 1.8
+steerable: true

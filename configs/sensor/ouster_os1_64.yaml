@@ -1,0 +1,18 @@
+# Ouster OS1-64 — the sensor carried by the RELLIS-3D platform.
+#
+# VERIFY against the real dataset when it lands: the azimuth column count is a
+# runtime setting on this sensor (512 / 1024 / 2048), and RELLIS-3D's exact
+# choice has not been confirmed here. Everything else follows the published
+# OS1-64 specification. A wrong n_azimuth changes every budget denominator, so
+# check it before quoting any number from a sweep.
+name: ouster_os1_64
+n_beams: 64
+v_fov_min_deg: -22.5
+v_fov_max_deg: 22.5
+n_azimuth: 1024
+az_min_deg: 0.0
+az_max_deg: 360.0
+max_range: 120.0
+frame_rate_hz: 10.0
+mount_height: 1.8
+steerable: false
