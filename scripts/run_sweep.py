@@ -35,7 +35,9 @@ def main() -> int:
     ap.add_argument("--csv", type=Path, default=Path("results/m2_sweep.csv"))
     ap.add_argument("--out", type=Path, default=Path("results/m2_budget_curve.png"))
     ap.add_argument("--no-ray-accounting", action="store_true",
-                    help="skip the M4 absence reasoning, to measure what it buys")
+                    help="skip the discontinuity test, to measure what it buys")
+    ap.add_argument("--absence-test", action="store_true",
+                    help="also run the M4 fired-no-answer test (slow, low yield)")
     args = ap.parse_args()
 
     if not args.gt.exists():
@@ -56,7 +58,8 @@ def main() -> int:
     print(f"absence reasoning: {'off' if args.no_ray_accounting else 'ON'}")
 
     rows = run_sweep(scene, sensor, gt, runs, seed=args.seed,
-                     ray_accounting=not args.no_ray_accounting)
+                     ray_accounting=not args.no_ray_accounting,
+                     absence_test=args.absence_test)
 
     args.csv.parent.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(rows).to_csv(args.csv, index=False)

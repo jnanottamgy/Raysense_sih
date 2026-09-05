@@ -1,4 +1,4 @@
-"""Budget allocation: the protocol, the baselines, and (from M5) our method."""
+"""Budget allocation: the protocol, the baselines, and our method."""
 
 from raysense.allocate.base import Allocator, WorldState
 from raysense.allocate.baselines import (
@@ -7,15 +7,18 @@ from raysense.allocate.baselines import (
     StaticFrontROI,
     UniformDecimation,
 )
+from raysense.allocate.raysense import NeedWeights, RaysenseAllocator, VehicleModel
 
 BASELINES = {
     "full": FullScan,
     "uniform": UniformDecimation,
     "random": RandomSubsample,
     "front_roi": StaticFrontROI,
+    "raysense": RaysenseAllocator,
 }
 
 __all__ = [
-    "BASELINES", "Allocator", "FullScan", "RandomSubsample", "StaticFrontROI",
-    "UniformDecimation", "WorldState",
+    "BASELINES", "Allocator", "FullScan", "NeedWeights", "RandomSubsample",
+    "RaysenseAllocator", "StaticFrontROI", "UniformDecimation", "VehicleModel",
+    "WorldState",
 ]

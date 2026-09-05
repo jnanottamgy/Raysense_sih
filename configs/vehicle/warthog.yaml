@@ -1,0 +1,11 @@
+# An all-terrain UGV of the class RELLIS-3D was recorded on.
+# The braking model is what turns a sensor limit into a speed limit.
+name: warthog
+width: 1.4           # m
+speed: 4.0           # m/s — the traverse speed used by the scenes
+decel: 2.0           # m/s^2
+reaction_time: 0.3   # s
+# The smallest ditch the vehicle must never drive into. This is the target the
+# safety floor is sized against — negative obstacles, not positive ones, because
+# they are the binding constraint (see docs/M0_FINDINGS.md).
+min_ditch_width: 1.0  # m

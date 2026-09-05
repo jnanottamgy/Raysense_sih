@@ -119,3 +119,45 @@ def feature_recall(est: np.ndarray, masks: dict[str, np.ndarray]) -> dict[str, f
         out[f"{kind}_missed_unsafe"] = float((est[m] == int(T.TRAVERSABLE)).sum()) / n
         out[f"n_{kind}_cells"] = n
     return out
+
+
+def corridor_recall(
+    est: np.ndarray,
+    masks: dict[str, np.ndarray],
+    path_distance: np.ndarray,
+    half_width: float,
+) -> dict[str, float]:
+    """Recall restricted to hazards the vehicle could actually drive into.
+
+    Whole-map recall weights a ditch sixty metres off the route exactly as
+    heavily as one directly ahead, which is not what a vehicle cares about and
+    not what the allocator is trying to optimise. This scores only the hazards
+    inside the driven corridor.
+    """
+    from raysense.perceive import Traversability as T
+
+    near = path_distance <= half_width
+    out: dict[str, float] = {}
+    for kind, m in masks.items():
+        sel = m & near
+        n = int(sel.sum())
+        if not n:
+            out[f"corridor_{kind}_detected"] = float("nan")
+            out[f"corridor_{kind}_missed_unsafe"] = float("nan")
+            out[f"n_corridor_{kind}"] = 0
+            continue
+        out[f"corridor_{kind}_detected"] = float((est[sel] == int(T.BLOCKED)).sum()) / n
+        out[f"corridor_{kind}_missed_unsafe"] = (
+            float((est[sel] == int(T.TRAVERSABLE)).sum()) / n
+        )
+        out[f"n_corridor_{kind}"] = n
+    return out
+
+
+def distance_to_path(emap, path: np.ndarray) -> np.ndarray:
+    """Shortest distance from every map cell to the driven route."""
+    X, Y = emap.cell_centres()
+    best = np.full(X.shape, np.inf)
+    for px, py in path:
+        np.minimum(best, np.hypot(X - px, Y - py), out=best)
+    return best

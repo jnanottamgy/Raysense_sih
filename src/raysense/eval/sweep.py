@@ -16,10 +16,16 @@ import time
 from dataclasses import dataclass
 
 from raysense.allocate import BASELINES, WorldState
-from raysense.eval.metrics import elevation_metrics, feature_recall, traversability_metrics
+from raysense.eval.metrics import (
+    corridor_recall,
+    distance_to_path,
+    elevation_metrics,
+    feature_recall,
+    traversability_metrics,
+)
 from raysense.mapping import FixedGridMap
 from raysense.perceive import classify, feature_masks, true_traversability
-from raysense.raycast import integrate_rays
+from raysense.raycast import integrate_rays, mark_discontinuities
 from raysense.sensor import ReplayBackend, SensorModel
 from raysense.sim import drive
 
@@ -56,6 +62,7 @@ def run_sweep(
     record_every: int = 5,
     seed: int = 0,
     ray_accounting: bool = True,
+    absence_test: bool = False,
     verbose: bool = True,
 ) -> list[dict]:
     """Drive the scene once, replay it through every run, return metric rows."""
@@ -67,6 +74,7 @@ def run_sweep(
     probe = FixedGridMap(scene.map_config)
     truth_trav = true_traversability(probe, scene)
     masks = feature_masks(probe, scene)
+    path_dist = distance_to_path(probe, scene.path)
 
     maps = {r: FixedGridMap(scene.map_config) for r in runs}
     allocs = {
@@ -83,14 +91,22 @@ def run_sweep(
         backend = ReplayBackend(full_scan)
 
         for r in runs:
-            world = WorldState(sensor=sensor, frame=frame, origin=origin, emap=maps[r])
+            world = WorldState(sensor=sensor, frame=frame, origin=origin,
+                               emap=maps[r], speed=getattr(scene, "speed", 4.0))
             t0 = time.perf_counter()
             budget = allocs[r].allocate(world, int(round(r.fraction * n_native)))
             scan = backend.acquire(budget)
             maps[r].integrate(scan.points, frame=frame)
             if ray_accounting:
-                tally = integrate_rays(maps[r], scan, frame=frame)
-                stats[r]["candidates"] += tally["candidate_negative"]
+                # Signature B: gaps in the ground returns that geometry cannot
+                # explain. This is the one that finds stepped-over ditches.
+                stats[r]["candidates"] += mark_discontinuities(
+                    maps[r], scan, sensor, frame=frame
+                )
+            if absence_test:
+                # Signature A: fired, no answer. Cheap to keep, but M4 showed
+                # it fires on almost none of the ditches that matter.
+                integrate_rays(maps[r], scan, frame=frame)
             stats[r]["seconds"] += time.perf_counter() - t0
             stats[r]["rays"] += scan.n_fired
             stats[r]["returns"] += scan.n_returns
@@ -120,6 +136,7 @@ def run_sweep(
                     **elevation_metrics(maps[r], gt),
                     **traversability_metrics(est_trav, truth_trav),
                     **feature_recall(est_trav, masks),
+                    **corridor_recall(est_trav, masks, path_dist, half_width=12.0),
                 })
         if verbose and (frame % 10 == 0 or last):
             print(f"  frame {frame:3d}/{scene.n_frames}  "
@@ -140,16 +157,16 @@ def summarise(rows: list[dict]) -> str:
     """A compact text report, for the terminal and for commit messages."""
     finals = sorted(final_table(rows), key=lambda r: (r["allocator"], r["fraction"]))
     out = [
-        f"{'allocator':<10}{'spent':>7}{'cover':>7}{'haz.det':>9}{'haz.unk':>9}"
-        f"{'UNSAFE':>8}{'neg.det':>9}{'pos.det':>9}{'ms/fr':>7}",
-        "-" * 75,
+        f"{'allocator':<10}{'spent':>7}{'cover':>7}{'neg.det':>9}{'pos.det':>9}"
+        f"{'CORRIDOR neg':>14}{'corr.unsafe':>13}{'ms/fr':>7}",
+        "-" * 76,
     ]
     for r in finals:
         out.append(
             f"{r['allocator']:<10}{r['achieved_fraction']:>6.1%}"
-            f"{r['coverage_recall']:>7.0%}{r['trav_recall']:>9.1%}"
-            f"{r['unknown_on_hazard']:>9.1%}{r['unsafe_rate']:>8.2%}"
-            f"{r['negative_detected']:>9.1%}{r['positive_detected']:>9.1%}"
-            f"{r['ms_per_frame']:>7.1f}"
+            f"{r['coverage_recall']:>7.0%}{r['negative_detected']:>9.1%}"
+            f"{r['positive_detected']:>9.1%}"
+            f"{r['corridor_negative_detected']:>14.1%}"
+            f"{r['corridor_negative_missed_unsafe']:>13.2%}{r['ms_per_frame']:>7.1f}"
         )
     return "\n".join(out)
