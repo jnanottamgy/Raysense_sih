@@ -1,0 +1,223 @@
+<meta charset="utf-8">
+<title>Raysense SIH26053</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--ink:#14181A;--ink2:#43504F;--ink3:#6E7B79;--rule:#D2D8D3;--surf:#fff;
+      --ground:#F1F3F0;--blue:#1E5266;--neg:#B5471A;--ok:#2E7D52;--pur:#5B3A8E}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--ground);font-family:"IBM Plex Sans",system-ui,sans-serif;color:var(--ink)}
+.slide{width:1120px;height:630px;background:var(--surf);padding:40px 54px 62px;
+       page-break-after:always;position:relative;display:flex;flex-direction:column;overflow:hidden}
+.slide:last-child{page-break-after:auto}
+h1{font-family:"IBM Plex Sans Condensed",sans-serif;font-size:44px;line-height:1.08;letter-spacing:-.02em}
+h2{font-family:"IBM Plex Sans Condensed",sans-serif;font-size:30px;line-height:1.12;margin-bottom:6px}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.16em;
+         text-transform:uppercase;color:var(--ink3);margin-bottom:16px}
+.num{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.foot{position:absolute;bottom:20px;left:54px;right:54px;display:flex;justify-content:space-between;
+      font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--ink3);
+      border-top:1px solid var(--rule);padding-top:9px;letter-spacing:.05em}
+p{font-size:17px;line-height:1.5;color:var(--ink2)}
+strong{color:var(--ink);font-weight:600}
+.lead{font-size:21px;line-height:1.42;color:var(--ink2);max-width:70ch}
+table{border-collapse:collapse;width:100%;font-size:15px;margin-top:14px}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--rule)}
+th{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;
+   text-transform:uppercase;color:var(--ink3);font-weight:500}
+td.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;text-align:right}
+.big{display:flex;gap:22px;margin-top:16px}
+.stat{flex:1;border:1px solid var(--rule);border-left:3px solid var(--blue);padding:13px 16px}
+.stat .v{font-family:"IBM Plex Mono",monospace;font-size:30px;font-weight:600;color:var(--blue);
+         line-height:1;letter-spacing:-.02em}
+.stat.warn{border-left-color:var(--neg)} .stat.warn .v{color:var(--neg)}
+.stat.good{border-left-color:var(--ok)} .stat.good .v{color:var(--ok)}
+.stat .k{font-size:13px;color:var(--ink3);margin-top:8px;line-height:1.35}
+.f{font-family:"IBM Plex Mono",monospace;font-size:22px;background:var(--ground);
+   border-left:3px solid var(--blue);padding:14px 20px;margin:16px 0;color:var(--blue);font-weight:600}
+.cols{display:flex;gap:34px;flex:1}
+.cols>div{flex:1}
+ul{margin:10px 0 0 18px} li{font-size:15px;line-height:1.5;color:var(--ink2);margin:6px 0}
+img{width:100%;max-height:322px;object-fit:contain;border:1px solid var(--rule);margin-top:8px}
+.ref{font-size:12px;line-height:1.5;color:var(--ink3)}
+.tag{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:11px;
+     padding:3px 9px;border:1px solid var(--rule);color:var(--ink3);margin-right:6px}
+</style>
+
+<!-- 1 ................................................................. -->
+<div class="slide" style="justify-content:center">
+  <div class="eyebrow">Smart India Hackathon 2026 &nbsp;·&nbsp; Problem statement SIH26053</div>
+  <h1>Adaptive Variable Resolution<br>2.5D Lidar Mapping</h1>
+  <p class="lead" style="margin-top:22px">
+    A defence ground vehicle's lidar sees <strong>93% of what sticks up</strong> and
+    <strong>15% of what it can fall into.</strong><br>
+    One geometric test closes that gap — at a twentieth of the point budget.</p>
+  <div style="margin-top:30px">
+    <span class="tag">DRDO</span><span class="tag">Smart Automation</span>
+    <span class="tag">Software</span><span class="tag">Team Raysense</span>
+  </div>
+  <div class="foot"><span>TEAM RAYSENSE</span><span>SIH26053 · DRDO</span></div>
+</div>
+
+<!-- 2 ................................................................. -->
+<div class="slide">
+  <div class="eyebrow">01 — The problem</div>
+  <h2>Negative obstacles are invisible at <em>any</em> budget</h2>
+  <p class="lead" style="margin-top:10px">Ditches, craters and washouts are detected by the
+    <strong>absence</strong> of laser returns. A narrow trench is not entered by beams — it is
+    stepped over. Measured on 40 full scans, every ray, no budget limit:</p>
+  <div class="big">
+    <div class="stat good"><div class="v">92.9%</div>
+      <div class="k">of <strong>positive</strong> obstacles detected<br>things that stick up</div></div>
+    <div class="stat warn"><div class="v">15.2%</div>
+      <div class="k">of <strong>negative</strong> obstacles detected<br>things you fall into</div></div>
+    <div class="stat warn"><div class="v">6.4%</div>
+      <div class="k">of real hazards reported as <strong>safe to drive over</strong><br>
+        and this rises with more data</div></div>
+  </div>
+  <p style="margin-top:20px"><strong>Spending more rays cannot fix it.</strong> A full scan already
+    spends everything. More data makes the system more <em>confidently wrong</em>: it sees the
+    trench rim, judges it flat, and calls it drivable.</p>
+  <div class="foot"><span>MEASURED · 40-FRAME TRAVERSE · OUSTER OS1-64</span><span>2 / 6</span></div>
+</div>
+
+<!-- 3 ................................................................. -->
+<div class="slide">
+  <div class="eyebrow">02 — The solution</div>
+  <h2>A ditch leaves a gap that geometry cannot explain</h2>
+  <div class="cols">
+    <div>
+      <p style="margin-top:8px">Two adjacent beams that both return land a predictable distance
+        apart on level ground. If the far one lands much further out, the surface between them
+        dropped away.</p>
+      <p style="margin-top:12px">The comparison must be against what geometry predicts
+        <strong>at that range</strong> — ground spacing grows quadratically, so a fixed threshold
+        flags flat ground seven times over.</p>
+      <div class="f">anomaly = measured gap ÷ predicted gap(r)</div>
+      <table>
+        <tr><th>Scene</th><th style="text-align:right">Max ratio</th><th style="text-align:right">Flags</th></tr>
+        <tr><td>Flat ground</td><td class="n">—</td><td class="n">0</td></tr>
+        <tr><td>Rolling terrain</td><td class="n">2.48</td><td class="n">70</td></tr>
+        <tr><td><strong>2.4 m × 1.8 m trench</strong></td><td class="n"><strong>7.28</strong></td><td class="n">299</td></tr>
+      </table>
+    </div>
+    <div>
+      <p style="margin-top:8px"><strong>The same formula that states the danger finds it.</strong>
+        The quadratic falloff is why ditches are missed — and, normalised, it is the detector.</p>
+      <table>
+        <tr><th>Budget</th><th style="text-align:right">Absence test</th><th style="text-align:right">Ours</th></tr>
+        <tr><td class="n">2%</td><td class="n">6.7%</td><td class="n"><strong>82.5%</strong></td></tr>
+        <tr><td class="n">5%</td><td class="n">9.7%</td><td class="n"><strong>96.0%</strong></td></tr>
+        <tr><td class="n">100%</td><td class="n">15.2%</td><td class="n"><strong>100%</strong></td></tr>
+      </table>
+      <div class="stat good" style="margin-top:18px"><div class="v">20× fewer points</div>
+        <div class="k">5% budget with the detector finds <strong>96%</strong>.<br>
+          A full scan without it finds <strong>15%</strong>.</div></div>
+    </div>
+  </div>
+  <div class="foot"><span>DETECTOR COST 43 ms/FRAME</span><span>3 / 6</span></div>
+</div>
+
+<!-- 4 ................................................................. -->
+<div class="slide">
+  <div class="eyebrow">03 — Technical approach</div>
+  <h2>What the geometry also tells you: how fast you may drive</h2>
+  <div class="cols">
+    <div>
+      <p style="margin-top:8px">A bump of height <em>h</em> at range <em>r</em> needs angular
+        spacing <em>h/r</em>. A <strong>ditch of width w needs w·h/r²</strong> — quadratically
+        tighter. A safety floor sized for bumps is comfortably met while ditches stay invisible.</p>
+      <div class="f">Δθ ≤ w · h<sub>sensor</sub> / r²</div>
+      <table>
+        <tr><th>Range</th><th style="text-align:right">Needed</th><th style="text-align:right">OS1-64 has</th><th>Met?</th></tr>
+        <tr><td class="n">8 m</td><td class="n">1.611°</td><td class="n">0.714°</td><td>yes</td></tr>
+        <tr><td class="n"><strong>12 m</strong></td><td class="n">0.714°</td><td class="n">0.714°</td><td><strong>the limit</strong></td></tr>
+        <tr><td class="n">20 m</td><td class="n">0.258°</td><td class="n">0.714°</td><td style="color:#B5471A">no</td></tr>
+        <tr><td class="n">40 m</td><td class="n">0.064°</td><td class="n">0.714°</td><td style="color:#B5471A">no</td></tr>
+      </table>
+      <div class="stat warn" style="margin-top:16px"><div class="v">23 km/h</div>
+        <div class="k">Maximum safe speed for a stock OS1-64 that must never drive into a
+          1 m ditch — and the sensor gives no indication that this is so.</div></div>
+    </div>
+    <div>
+      <h2 style="font-size:19px;margin-top:6px">Which lidar does this run on?</h2>
+      <ul>
+        <li><strong>Steerable</strong> (MEMS/OPA) — emits only budgeted rays; saves laser energy.</li>
+        <li><strong>Fixed-pattern</strong> (Velodyne, Ouster) — every ray fires; the budget selects
+          what is processed. Saves bandwidth, memory and compute — <em>not</em> laser power.</li>
+        <li><strong>Replay</strong> — the evaluation harness.</li>
+      </ul>
+      <h2 style="font-size:19px;margin-top:22px">What we deliberately do not build</h2>
+      <ul>
+        <li>SLAM — we consume ego-motion, we do not estimate it</li>
+        <li>Sensor fusion — lidar only, so the measurement is not confounded</li>
+        <li>Path planning, dashboards, cloud</li>
+      </ul>
+      <p style="margin-top:16px;font-size:14px">Python · NumPy · 103 tests · every figure
+        generated from a committed CSV, none typed by hand.</p>
+    </div>
+  </div>
+  <div class="foot"><span>SWaP · SENSOR-AGNOSTIC BY DESIGN</span><span>4 / 6</span></div>
+</div>
+
+<!-- 5 ................................................................. -->
+<div class="slide">
+  <div class="eyebrow">04 — Results</div>
+  <h2>Identical rays, identical scene, opposite verdicts</h2>
+  <img src="../results/demo_frames/frame_006.png" alt="Side by side at frame 6">
+  <div class="big" style="margin-top:10px">
+    <div class="stat good"><div class="v">2.19×</div>
+      <div class="k">more warning distance at 2% budget<br>
+        <span class="num">9.4 s</span> to react, against <span class="num">4.3 s</span></div></div>
+    <div class="stat"><div class="v">96%</div>
+      <div class="k">of negative obstacles found<br>at 5% of a full scan</div></div>
+    <div class="stat warn"><div class="v">0 / 4</div>
+      <div class="k">ditches found by the baseline at this frame<br>
+        while it reports <strong>clear to drive</strong></div></div>
+  </div>
+  <div class="foot"><span>SEED 7 · FRAME 6 · REPRODUCIBLE</span><span>5 / 6</span></div>
+</div>
+
+<!-- 6 ................................................................. -->
+<div class="slide">
+  <div class="eyebrow">05 — Prior art, and what is ours</div>
+  <h2>This field exists. We read it first.</h2>
+  <div class="cols">
+    <div>
+      <h2 style="font-size:17px;margin-top:6px">Adaptive lidar sampling is established</h2>
+      <p class="ref" style="margin-top:8px">
+        Pittaluga et al., <em>Towards a MEMS-based Adaptive LIDAR</em>, NEC Labs (arXiv 2003.09545) ·
+        <em>Adaptive LiDAR Scanning: Harnessing Temporal Cues</em> (arXiv 2508.01562, 2025) ·
+        AEye iDAR / 4Sight, US 11675053 / 11782136 / 11860313 ·
+        <em>Fast Adaptive Scene Sampling for Single-Photon 3D Lidar</em></p>
+      <h2 style="font-size:17px;margin-top:18px">So is negative-obstacle detection</h2>
+      <p class="ref" style="margin-top:8px">
+        Larson &amp; Trivedi, <em>Lidar Based Off-road Negative Obstacle Detection</em>, DTIC ADA561293 ·
+        <em>Negative Obstacle Detection Using Sparse 3D LiDAR</em>, IEEE ROBIO 2024 ·
+        RELLIS-3D, ICRA 2021</p>
+      <h2 style="font-size:17px;margin-top:18px">Honest limitations</h2>
+      <ul>
+        <li>Rolling terrain raises 70 false flags per scan at threshold 2.0; crest occlusions</li>
+        <li>Results are on a controlled testbed with exact ground truth, not yet RELLIS-3D</li>
+        <li>Smart allocation does <strong>not</strong> beat plain decimation on whole-map recall —
+          it wins only on warning distance</li>
+      </ul>
+    </div>
+    <div>
+      <div class="stat" style="border-left-color:var(--neg)">
+        <div class="k" style="margin:0;font-size:15px;color:var(--ink)">
+          <strong>What is ours</strong><br><br>
+          Every published adaptive-lidar result targets urban driving, where negative obstacles
+          barely exist. Every negative-obstacle result assumes dense uniform scanning.<br><br>
+          <strong>The two fields have never been put in the same room.</strong><br><br>
+          We put them there, and found that adaptive sampling creates exactly the absences that
+          hide a ditch — then derived a detector from the same geometry that causes the problem.
+        </div>
+      </div>
+      <p style="margin-top:20px;font-size:14px;color:var(--ink3)">
+        <strong style="color:var(--ink)">Team Raysense</strong><br>
+        Six members · internal hackathon nomination<br>
+        Repository, findings and reproduction steps available.</p>
+    </div>
+  </div>
+  <div class="foot"><span>WE DID NOT INVENT THIS FIELD — WE CHARACTERISED IT FOR YOURS</span><span>6 / 6</span></div>
+</div>

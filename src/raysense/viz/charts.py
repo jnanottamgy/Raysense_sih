@@ -117,3 +117,39 @@ def convergence(rows, metric: str = "coverage_recall", title: str = "") -> Figur
                  fontsize=10.5, weight="bold", loc="left", color=INK["primary"])
     fig.tight_layout()
     return fig
+
+
+def detection_range(detections, title: str = "") -> Figure:
+    """How far away each ditch is when it is first flagged.
+
+    The operational question, and the one whole-run recall cannot answer: a
+    system that eventually maps every ditch but only notices the one ahead at
+    ten metres is not useful. Higher is better, and the axis is metres of
+    warning rather than a percentage.
+    """
+    df = pd.DataFrame(detections)
+    df = df[df["frame"] >= 0]
+
+    fig = Figure(figsize=(8.4, 5.2), dpi=130, facecolor=INK["surface"])
+    ax = fig.subplots()
+    _style(ax)
+
+    for name, grp in df.groupby("allocator"):
+        g = grp.groupby("fraction")["detection_range_m"].mean().sort_index()
+        colour = SERIES_COLOR.get(name, INK["secondary"])
+        ax.plot(g.index * 100, g.values, lw=2.0, color=colour, marker="o", ms=6,
+                mfc=colour, mec=INK["surface"], mew=1.2, zorder=3)
+        ax.annotate(SERIES_LABEL.get(name, name), xy=(g.index[-1] * 100, g.values[-1]),
+                    xytext=(8, 0), textcoords="offset points", fontsize=8.5,
+                    color=colour, weight="bold", va="center")
+
+    ax.set_xscale("log")
+    ax.set_xticks([2, 5, 10, 20])
+    ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+    ax.set_xlim(1.6, 38)
+    ax.set_xlabel("budget — share of a full scan (%)")
+    ax.set_ylabel("mean warning distance (m)  (higher is better)")
+    ax.set_title(title or "How far off is a ditch when you first notice it?",
+                 fontsize=10.5, weight="bold", loc="left", color=INK["primary"])
+    fig.tight_layout()
+    return fig

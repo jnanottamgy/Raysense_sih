@@ -57,13 +57,16 @@ def main() -> int:
     print(f"runs:    {len(runs)}  ({', '.join(args.allocators)})")
     print(f"absence reasoning: {'off' if args.no_ray_accounting else 'ON'}")
 
-    rows = run_sweep(scene, sensor, gt, runs, seed=args.seed,
-                     ray_accounting=not args.no_ray_accounting,
-                     absence_test=args.absence_test)
+    rows, detections = run_sweep(scene, sensor, gt, runs, seed=args.seed,
+                                 ray_accounting=not args.no_ray_accounting,
+                                 absence_test=args.absence_test)
 
     args.csv.parent.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(rows).to_csv(args.csv, index=False)
-    print(f"\nwrote {args.csv}  ({len(rows)} rows)\n")
+    det_path = args.csv.with_name(args.csv.stem + "_detections.csv")
+    pd.DataFrame(detections).to_csv(det_path, index=False)
+    print(f"\nwrote {args.csv}  ({len(rows)} rows)")
+    print(f"wrote {det_path}  ({len(detections)} first-detection events)\n")
     print(summarise(rows))
 
     fig = budget_curve(rows, title=f"Budget versus map quality — {scene.name}, "
