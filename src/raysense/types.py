@@ -111,6 +111,12 @@ class ScanResult:
     it returned or not. `ray_index[i]` is the index into `fired` that produced
     `points[i]`, which is what makes non-returns recoverable rather than
     merely absent.
+
+    Frame convention: `points` and `fired.origin` are always in the *same*
+    coordinate system, and the map consumes them as world coordinates. The
+    simulator produces these directly; a recorded dataset is transformed by its
+    pose on load. Subtracting `fired.origin` therefore always gives the
+    sensor-relative vector, whatever the source.
     """
 
     points: np.ndarray        # (N, 3) return positions, sensor frame

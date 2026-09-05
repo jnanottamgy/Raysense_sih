@@ -292,3 +292,40 @@ def make_terrain(
     h = (h - h.mean()) * roughness
     origin = (-size_m / 2, -size_m / 2) if centered else (0.0, 0.0)
     return Terrain(height=h, resolution=resolution, origin=origin)
+
+
+def drive(
+    terrain: Terrain,
+    sensor,
+    path: np.ndarray,
+    step: float = 0.35,
+    refine: int = 10,
+):
+    """Yield `(frame, origin, scan)` for a sensor carried along `path`.
+
+    `path` is (F, 2) world x/y waypoints; the sensor rides `sensor.mount_height`
+    above the terrain at each one. Azimuth is not rotated with heading — a
+    spinning lidar covers the full circle anyway, so yaw changes which beam
+    index points where but not what is covered. That simplification is worth
+    revisiting only if a directional sensor profile is used.
+    """
+    path = np.asarray(path, dtype=float)
+    if path.ndim != 2 or path.shape[1] != 2:
+        raise ValueError(f"path must be (F, 2), got {path.shape}")
+
+    for frame, (x, y) in enumerate(path):
+        ground = float(terrain.sample(np.array(x), np.array(y)))
+        if not np.isfinite(ground):
+            raise ValueError(f"waypoint {frame} at ({x}, {y}) lies outside the terrain")
+        origin = np.array([x, y, ground + sensor.mount_height])
+        scan = terrain.raycast(sensor.full_ray_grid(origin), step=step, refine=refine)
+        yield frame, origin, scan
+
+
+def straight_path(start: tuple[float, float], heading_deg: float, speed: float,
+                  n_frames: int, rate_hz: float = 10.0) -> np.ndarray:
+    """A constant-speed straight run — the simplest honest ego-motion."""
+    d = np.deg2rad(heading_deg)
+    t = np.arange(n_frames) / rate_hz
+    return np.stack([start[0] + speed * t * np.cos(d),
+                     start[1] + speed * t * np.sin(d)], axis=1)

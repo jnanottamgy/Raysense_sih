@@ -96,3 +96,21 @@ STATE_STYLE: dict[CellState, dict[str, str | None]] = {
 
 # Ground-truth feature kinds in the synthetic world.
 FEATURE_COLOR = {"negative": PALETTE.negative, "positive": PALETTE.obstacle}
+
+# Series identity on charts, keyed by allocator name. Colour follows the
+# entity, never its rank — dropping a series from a plot must not repaint the
+# survivors. `full` is a reference ceiling rather than a series, so it is drawn
+# as a dashed rule in ink and holds no hue.
+SERIES_COLOR = {
+    "uniform": PALETTE.sensor,        # the honest naive baseline
+    "random": PALETTE.obstacle,       # the null hypothesis
+    "front_roi": PALETTE.traversable,  # M3 — the baseline a judge will propose
+    "raysense": PALETTE.negative,     # M5 — ours
+}
+SERIES_LABEL = {
+    "uniform": "Uniform decimation",
+    "random": "Random subsample",
+    "front_roi": "Static front ROI",
+    "raysense": "Raysense",
+    "full": "Full scan",
+}
