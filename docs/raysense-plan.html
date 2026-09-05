@@ -340,6 +340,46 @@ footer .mono{letter-spacing:.04em}
 @media (prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important}
 }
+
+/* ---------- print / PDF ---------- */
+.print-only{display:none}
+@media print{
+  :root{
+    --ground:#FFFFFF; --surface:#FFFFFF; --surface-2:#F0F2EF;
+    --ink:#14181A; --ink-2:#43504F; --ink-3:#6E7B79;
+    --rule:#D2D8D3; --rule-2:#B4BDB5;
+    --survey:#1E5266; --survey-soft:#E9F0F2;
+    --safe:#33684D; --safe-soft:#E8F0EB;
+    --caution:#8A6309; --caution-soft:#F5EDDA;
+    --signal:#A63F14; --signal-soft:#F8E9E1;
+    --shadow:none;
+  }
+  body{background:#fff;font-size:10.5pt;line-height:1.5}
+  .bar{position:static;backdrop-filter:none;background:#fff}
+  .bar-in{padding:0 0 8px;max-width:none}
+  .countdown{display:none}
+  .print-only{display:inline;font-family:"IBM Plex Mono",monospace;font-size:9pt;color:var(--signal)}
+  .wrap{max-width:none;padding:0}
+  .doc,.lede,.pitch,.standfirst,.note,
+  section p,section ul,section ol{max-width:none}
+  .meta{grid-template-columns:repeat(3,1fr)}
+  .masthead{padding:6px 0 12px}
+  .toc ol{grid-template-columns:repeat(2,1fr)}
+  h1{font-size:25pt}
+  h2{font-size:16pt}
+  h3{font-size:12pt}
+  .standfirst{font-size:11.5pt}
+  section{padding-top:22px}
+  .toc{break-inside:avoid}
+  h2,h3,h4{break-after:avoid}
+  figure,.fig,.scroll,table,.note,.phase,.formula,.finals article,.rules li,.steps li{break-inside:avoid}
+  tr{break-inside:avoid}
+  thead{display:table-header-group}
+  .scroll{overflow:visible}
+  a{color:var(--survey);text-decoration:none}
+  footer{margin-top:26px}
+}
+@page{margin:14mm 26mm}
 </style>
 
 <div class="bar">
@@ -348,6 +388,7 @@ footer .mono{letter-spacing:.04em}
     <span class="bar-ps">SIH26053 · DRDO · Software</span>
     <span class="bar-spacer"></span>
     <span class="countdown" id="cd"><b>—</b> days to idea submission</span>
+    <span class="print-only">IDEA SUBMISSION 20 SEP 2026 · VERIFY ON SIH.GOV.IN</span>
   </div>
 </div>
 
