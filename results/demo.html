@@ -25,7 +25,8 @@ const F=["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABUYAAAJACAYAAABBv7zyAAAA
 function go(n){i=(n+F.length)%F.length;document.getElementById('f').src=F[i];
  document.getElementById('cap').textContent=C[i];document.getElementById('s').value=i;}
 function step(d){pause();go(i+d);}
-function pause(){if(t){clearInterval(t);t=null;document.getElementById('pp').innerHTML='&#9654; play';}}
+function pause(){if(!t)return;clearInterval(t);t=null;
+ document.getElementById('pp').innerHTML='&#9654; play';}
 function toggle(){if(t)return pause();
  t=setInterval(()=>go(i+1),450);document.getElementById('pp').innerHTML='&#10074;&#10074; pause';}
 document.onkeydown=e=>{if(e.key==='ArrowRight')step(1);if(e.key==='ArrowLeft')step(-1);

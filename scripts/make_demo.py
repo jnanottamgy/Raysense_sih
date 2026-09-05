@@ -27,7 +27,7 @@ from matplotlib.figure import Figure
 
 from raysense.allocate import BASELINES, WorldState
 from raysense.mapping import FixedGridMap
-from raysense.perceive import Traversability, classify, feature_masks
+from raysense.perceive import Traversability, classify
 from raysense.raycast import mark_discontinuities
 from raysense.sensor import ReplayBackend, SensorModel
 from raysense.sim import SCENES, drive
@@ -56,6 +56,18 @@ def counters_panel(ax, label, stats, highlight: bool) -> None:
                 transform=ax.transAxes)
 
 
+def stats_for(trav, rays, flagged, feat_masks, nearest_idx, near_label) -> dict:
+    """What each system currently believes, for the counter strip."""
+    found = sum(int((trav[m] == int(Traversability.BLOCKED)).any()) for m in feat_masks)
+    near = feat_masks[nearest_idx]
+    blocked = (trav[near] == int(Traversability.BLOCKED)).any()
+    drivable = (trav[near] == int(Traversability.TRAVERSABLE)).any()
+    verdict = ("DITCH AHEAD" if blocked
+               else "clear to drive" if drivable else "unknown ahead")
+    return {"rays": rays, "flagged": flagged, "found": found,
+            "total": len(feat_masks), "nearest": near_label, "verdict": verdict}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--scene", default="offroad_course", choices=sorted(SCENES))
@@ -78,7 +90,6 @@ def main() -> int:
     alloc_off = BASELINES[args.allocator]()
     alloc_on = BASELINES[args.allocator]()
 
-    masks = feature_masks(off, scene)
     neg_features = [f for f in scene.terrain.features if f.kind == "negative"]
     X, Y = off.cell_centres()
     feat_masks = []
@@ -112,18 +123,8 @@ def main() -> int:
         k = int(np.argmin(d))
         near_label = f"{neg_features[k].label} @ {d[k]:.0f} m"
 
-        def stats_for(trav, rays, flagged):
-            found = sum(int((trav[m] == int(Traversability.BLOCKED)).any())
-                        for m in feat_masks)
-            blocked_near = (trav[feat_masks[k]] == int(Traversability.BLOCKED)).any()
-            drivable_near = (trav[feat_masks[k]] == int(Traversability.TRAVERSABLE)).any()
-            verdict = ("DITCH AHEAD" if blocked_near
-                       else "clear to drive" if drivable_near else "unknown ahead")
-            return {"rays": rays, "flagged": flagged, "found": found,
-                    "total": len(feat_masks), "nearest": near_label, "verdict": verdict}
-
-        s_off = stats_for(trav_off, budget, 0)
-        s_on = stats_for(trav_on, budget, flagged_on)
+        s_off = stats_for(trav_off, budget, 0, feat_masks, k, near_label)
+        s_on = stats_for(trav_on, budget, flagged_on, feat_masks, k, near_label)
 
         fig = Figure(figsize=(15.0, 6.4), dpi=110, facecolor=INK["surface"])
         gs = fig.add_gridspec(2, 2, height_ratios=[4.2, 1.0], hspace=0.05, wspace=0.12)
@@ -197,7 +198,8 @@ const F=[{imgs}],C=[{caps}];let i=0,t=null;
 function go(n){{i=(n+F.length)%F.length;document.getElementById('f').src=F[i];
  document.getElementById('cap').textContent=C[i];document.getElementById('s').value=i;}}
 function step(d){{pause();go(i+d);}}
-function pause(){{if(t){{clearInterval(t);t=null;document.getElementById('pp').innerHTML='&#9654; play';}}}}
+function pause(){{if(!t)return;clearInterval(t);t=null;
+ document.getElementById('pp').innerHTML='&#9654; play';}}
 function toggle(){{if(t)return pause();
  t=setInterval(()=>go(i+1),450);document.getElementById('pp').innerHTML='&#10074;&#10074; pause';}}
 document.onkeydown=e=>{{if(e.key==='ArrowRight')step(1);if(e.key==='ArrowLeft')step(-1);
