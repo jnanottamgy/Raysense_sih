@@ -34,6 +34,8 @@ def main() -> int:
     ap.add_argument("--gt", type=Path, default=Path("cache/gt_offroad_course.npz"))
     ap.add_argument("--csv", type=Path, default=Path("results/m2_sweep.csv"))
     ap.add_argument("--out", type=Path, default=Path("results/m2_budget_curve.png"))
+    ap.add_argument("--no-ray-accounting", action="store_true",
+                    help="skip the M4 absence reasoning, to measure what it buys")
     args = ap.parse_args()
 
     if not args.gt.exists():
@@ -51,8 +53,10 @@ def main() -> int:
     print(f"sensor:  {sensor.name}, {sensor.n_rays:,} rays per full scan")
     print(f"truth:   {gt} ({gt.observed().sum():,} observed cells)")
     print(f"runs:    {len(runs)}  ({', '.join(args.allocators)})")
+    print(f"absence reasoning: {'off' if args.no_ray_accounting else 'ON'}")
 
-    rows = run_sweep(scene, sensor, gt, runs, seed=args.seed)
+    rows = run_sweep(scene, sensor, gt, runs, seed=args.seed,
+                     ray_accounting=not args.no_ray_accounting)
 
     args.csv.parent.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(rows).to_csv(args.csv, index=False)

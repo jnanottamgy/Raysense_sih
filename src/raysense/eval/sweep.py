@@ -16,8 +16,10 @@ import time
 from dataclasses import dataclass
 
 from raysense.allocate import BASELINES, WorldState
-from raysense.eval.metrics import elevation_metrics
+from raysense.eval.metrics import elevation_metrics, feature_recall, traversability_metrics
 from raysense.mapping import FixedGridMap
+from raysense.perceive import classify, feature_masks, true_traversability
+from raysense.raycast import integrate_rays
 from raysense.sensor import ReplayBackend, SensorModel
 from raysense.sim import drive
 
@@ -53,10 +55,18 @@ def run_sweep(
     runs: list[Run],
     record_every: int = 5,
     seed: int = 0,
+    ray_accounting: bool = True,
     verbose: bool = True,
 ) -> list[dict]:
     """Drive the scene once, replay it through every run, return metric rows."""
     n_native = sensor.n_rays
+
+    # Truth comes from the terrain itself, not from what any scan managed to
+    # see — otherwise every strategy scores perfectly on the ditches nobody
+    # ever observed. Computed once; it does not change.
+    probe = FixedGridMap(scene.map_config)
+    truth_trav = true_traversability(probe, scene)
+    masks = feature_masks(probe, scene)
 
     maps = {r: FixedGridMap(scene.map_config) for r in runs}
     allocs = {
@@ -64,7 +74,7 @@ def run_sweep(
             if r.allocator == "random" else BASELINES[r.allocator]())
         for r in runs
     }
-    stats = {r: {"rays": 0, "returns": 0, "seconds": 0.0} for r in runs}
+    stats = {r: {"rays": 0, "returns": 0, "seconds": 0.0, "candidates": 0} for r in runs}
 
     rows: list[dict] = []
     t_start = time.perf_counter()
@@ -78,6 +88,9 @@ def run_sweep(
             budget = allocs[r].allocate(world, int(round(r.fraction * n_native)))
             scan = backend.acquire(budget)
             maps[r].integrate(scan.points, frame=frame)
+            if ray_accounting:
+                tally = integrate_rays(maps[r], scan, frame=frame)
+                stats[r]["candidates"] += tally["candidate_negative"]
             stats[r]["seconds"] += time.perf_counter() - t0
             stats[r]["rays"] += scan.n_fired
             stats[r]["returns"] += scan.n_returns
@@ -86,6 +99,7 @@ def run_sweep(
         if frame % record_every == 0 or last:
             for r in runs:
                 s = stats[r]
+                est_trav = classify(maps[r])
                 rows.append({
                     "scene": scene.name,
                     "seed": scene.seed,
@@ -96,12 +110,16 @@ def run_sweep(
                     "rays_fired": s["rays"],
                     "returns": s["returns"],
                     "rays_per_frame": s["rays"] / (frame + 1),
+                    "ray_accounting": ray_accounting,
+                    "candidates_flagged": s["candidates"],
                     # what it actually spent. Integer strides mean uniform
                     # decimation cannot hit an arbitrary budget, so the
                     # requested fraction is not always the delivered one.
                     "achieved_fraction": s["rays"] / ((frame + 1) * n_native),
                     "ms_per_frame": 1e3 * s["seconds"] / (frame + 1),
                     **elevation_metrics(maps[r], gt),
+                    **traversability_metrics(est_trav, truth_trav),
+                    **feature_recall(est_trav, masks),
                 })
         if verbose and (frame % 10 == 0 or last):
             print(f"  frame {frame:3d}/{scene.n_frames}  "
@@ -122,14 +140,16 @@ def summarise(rows: list[dict]) -> str:
     """A compact text report, for the terminal and for commit messages."""
     finals = sorted(final_table(rows), key=lambda r: (r["allocator"], r["fraction"]))
     out = [
-        f"{'allocator':<10}{'asked':>7}{'spent':>8}{'rays/frame':>12}"
-        f"{'RMSE m':>9}{'coverage':>10}{'ms/frame':>10}",
-        "-" * 66,
+        f"{'allocator':<10}{'spent':>7}{'cover':>7}{'haz.det':>9}{'haz.unk':>9}"
+        f"{'UNSAFE':>8}{'neg.det':>9}{'pos.det':>9}{'ms/fr':>7}",
+        "-" * 75,
     ]
     for r in finals:
         out.append(
-            f"{r['allocator']:<10}{r['fraction']:>6.1%}{r['achieved_fraction']:>8.1%}"
-            f"{r['rays_per_frame']:>12,.0f}{r['elev_rmse']:>9.3f}"
-            f"{r['coverage_recall']:>9.1%}{r['ms_per_frame']:>10.1f}"
+            f"{r['allocator']:<10}{r['achieved_fraction']:>6.1%}"
+            f"{r['coverage_recall']:>7.0%}{r['trav_recall']:>9.1%}"
+            f"{r['unknown_on_hazard']:>9.1%}{r['unsafe_rate']:>8.2%}"
+            f"{r['negative_detected']:>9.1%}{r['positive_detected']:>9.1%}"
+            f"{r['ms_per_frame']:>7.1f}"
         )
     return "\n".join(out)

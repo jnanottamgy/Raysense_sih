@@ -51,3 +51,71 @@ def elevation_metrics(est: FixedGridMap, gt: FixedGridMap) -> dict[str, float]:
         # cells claimed that ground truth never saw — should be ~0 by construction
         "n_extra": int((est_seen & ~gt_seen).sum()),
     }
+
+
+def traversability_metrics(est: np.ndarray, truth: np.ndarray) -> dict[str, float]:
+    """Score a three-valued decision against a two-valued truth.
+
+    The split that matters is three-way, not two. Calling a ditch `UNKNOWN` is
+    a failure to detect, but it is an *honest* one — the vehicle slows or stops.
+    Calling it `TRAVERSABLE` is the failure that destroys the vehicle. Lumping
+    them together as "not detected" hides the only distinction a defence
+    customer cares about.
+    """
+    from raysense.perceive import Traversability as T
+
+    blocked_truth = truth == int(T.BLOCKED)
+    free_truth = truth == int(T.TRAVERSABLE)
+
+    said_blocked = est == int(T.BLOCKED)
+    said_free = est == int(T.TRAVERSABLE)
+    said_unknown = est == int(T.UNKNOWN)
+
+    n_blocked = int(blocked_truth.sum())
+    n_free = int(free_truth.sum())
+
+    tp = int((said_blocked & blocked_truth).sum())
+    fp = int((said_blocked & free_truth).sum())
+    unsafe = int((said_free & blocked_truth).sum())     # the one that kills
+    unknown_on_hazard = int((said_unknown & blocked_truth).sum())
+
+    precision = tp / (tp + fp) if (tp + fp) else float("nan")
+    recall = tp / n_blocked if n_blocked else float("nan")
+    f1 = (2 * precision * recall / (precision + recall)
+          if (tp + fp) and n_blocked and (precision + recall) > 0 else float("nan"))
+
+    return {
+        "trav_precision": precision,
+        "trav_recall": recall,
+        "trav_f1": f1,
+        # share of real hazards reported as safe to drive over
+        "unsafe_rate": unsafe / n_blocked if n_blocked else float("nan"),
+        # share of real hazards the system admits it cannot judge
+        "unknown_on_hazard": unknown_on_hazard / n_blocked if n_blocked else float("nan"),
+        "n_hazard_cells": n_blocked,
+        "n_free_cells": n_free,
+        "free_coverage": float(said_free.sum() + said_blocked.sum()) / est.size,
+    }
+
+
+def feature_recall(est: np.ndarray, masks: dict[str, np.ndarray]) -> dict[str, float]:
+    """Per-kind outcome on the planted obstacles.
+
+    Reported as the same three-way split: detected, admitted unknown, or
+    silently waved through. The last column is the headline of this project.
+    """
+    from raysense.perceive import Traversability as T
+
+    out: dict[str, float] = {}
+    for kind, m in masks.items():
+        n = int(m.sum())
+        if not n:
+            out[f"{kind}_detected"] = float("nan")
+            out[f"{kind}_unknown"] = float("nan")
+            out[f"{kind}_missed_unsafe"] = float("nan")
+            continue
+        out[f"{kind}_detected"] = float((est[m] == int(T.BLOCKED)).sum()) / n
+        out[f"{kind}_unknown"] = float((est[m] == int(T.UNKNOWN)).sum()) / n
+        out[f"{kind}_missed_unsafe"] = float((est[m] == int(T.TRAVERSABLE)).sum()) / n
+        out[f"n_{kind}_cells"] = n
+    return out
