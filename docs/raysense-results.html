@@ -1,0 +1,770 @@
+<title>Raysense Findings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F1F3F0;
+  --surface:#FFFFFF;
+  --surface-2:#E7EAE6;
+  --ink:#14181A;
+  --ink-2:#43504F;
+  --ink-3:#6E7B79;
+  --rule:#D2D8D3;
+  --rule-2:#BCC4BD;
+  --survey:#1E5266;
+  --survey-soft:#E2ECEF;
+  --safe:#3B7357;
+  --safe-soft:#E3EDE7;
+  --caution:#9A6F0E;
+  --caution-soft:#F4EBD6;
+  --signal:#B5471A;
+  --signal-soft:#F6E5DC;
+  --shadow:0 1px 2px rgba(20,24,26,.06), 0 6px 20px -10px rgba(20,24,26,.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F1315;
+    --surface:#171D1F;
+    --surface-2:#1F2729;
+    --ink:#E8EDEB;
+    --ink-2:#AFBAB8;
+    --ink-3:#7E8B89;
+    --rule:#2A3335;
+    --rule-2:#3A4547;
+    --survey:#6FB3CC;
+    --survey-soft:#152A33;
+    --safe:#69B58E;
+    --safe-soft:#152A20;
+    --caution:#D8A93F;
+    --caution-soft:#2C2313;
+    --signal:#E8825A;
+    --signal-soft:#2E1B12;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 20px -10px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F1315;
+  --surface:#171D1F;
+  --surface-2:#1F2729;
+  --ink:#E8EDEB;
+  --ink-2:#AFBAB8;
+  --ink-3:#7E8B89;
+  --rule:#2A3335;
+  --rule-2:#3A4547;
+  --survey:#6FB3CC;
+  --survey-soft:#152A33;
+  --safe:#69B58E;
+  --safe-soft:#152A20;
+  --caution:#D8A93F;
+  --caution-soft:#2C2313;
+  --signal:#E8825A;
+  --signal-soft:#2E1B12;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 20px -10px rgba(0,0,0,.7);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--ground);
+  color:var(--ink);
+  font-family:"IBM Plex Sans","Segoe UI",system-ui,-apple-system,sans-serif;
+  font-size:16px;
+  line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{
+  font-family:"IBM Plex Sans Condensed","IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  font-weight:700;
+  line-height:1.14;
+  text-wrap:balance;
+  margin:0;
+  letter-spacing:-.008em;
+}
+p{margin:0}
+a{color:var(--survey);text-underline-offset:3px;text-decoration-thickness:1px}
+a:focus-visible,button:focus-visible{outline:2px solid var(--survey);outline-offset:3px;border-radius:2px}
+code,.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+
+/* ---------- masthead ---------- */
+.bar{
+  position:sticky;top:0;z-index:20;
+  background:color-mix(in srgb, var(--ground) 88%, transparent);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--rule);
+}
+.bar-in{
+  max-width:1120px;margin:0 auto;padding:10px 28px;
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+}
+.wordmark{
+  font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:700;
+  font-size:15px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink);
+}
+.bar-ps{
+  font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink-3);
+  letter-spacing:.04em;
+}
+.bar-spacer{flex:1}
+.countdown{
+  display:flex;align-items:baseline;gap:7px;
+  font-family:"IBM Plex Mono",monospace;font-size:12.5px;
+  padding:5px 11px;border-radius:3px;
+  background:var(--signal-soft);color:var(--signal);
+  border:1px solid color-mix(in srgb, var(--signal) 30%, transparent);
+  font-variant-numeric:tabular-nums;
+}
+.countdown b{font-size:15px;font-weight:600}
+
+/* ---------- shell ---------- */
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px 96px}
+.doc{max-width:74ch}
+section{padding-top:56px;scroll-margin-top:70px}
+
+/* ---------- title block ---------- */
+.masthead{padding:52px 0 14px;border-bottom:1px solid var(--rule)}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-3);margin-bottom:18px;
+}
+h1{font-size:clamp(2.3rem,5.4vw,3.5rem);letter-spacing:-.022em}
+.standfirst{
+  margin-top:22px;font-size:1.16rem;line-height:1.58;color:var(--ink-2);max-width:66ch;
+}
+.pitch{
+  margin-top:30px;padding:22px 26px;background:var(--surface);
+  border:1px solid var(--rule);border-left:3px solid var(--survey);
+  border-radius:2px;box-shadow:var(--shadow);max-width:70ch;
+}
+.pitch p{font-size:1.09rem;line-height:1.56}
+.pitch em{color:var(--survey);font-style:normal;font-weight:600}
+
+/* ---------- meta strip ---------- */
+.meta{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:1px;background:var(--rule);border:1px solid var(--rule);
+  margin-top:30px;border-radius:2px;overflow:hidden;
+}
+.meta div{background:var(--surface);padding:13px 16px}
+.meta dt{
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink-3);margin:0 0 5px;
+}
+.meta dd{margin:0;font-size:14.5px;font-weight:500}
+
+/* ---------- toc ---------- */
+.toc{
+  margin-top:38px;padding:20px 24px;border:1px solid var(--rule);
+  border-radius:2px;background:var(--surface);
+}
+.toc h4{
+  font-size:11.5px;font-family:"IBM Plex Mono",monospace;font-weight:500;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px;
+}
+.toc ol{
+  margin:0;padding:0;list-style:none;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:2px 26px;
+  counter-reset:toc;
+}
+.toc li{counter-increment:toc}
+.toc a{
+  display:block;padding:3px 0;text-decoration:none;color:var(--ink-2);font-size:14.5px;
+}
+.toc a::before{
+  content:counter(toc,decimal-leading-zero);
+  font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-3);
+  margin-right:10px;font-variant-numeric:tabular-nums;
+}
+.toc a:hover{color:var(--survey)}
+
+/* ---------- headings ---------- */
+.sec-no{
+  font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.15em;
+  color:var(--survey);text-transform:uppercase;display:block;margin-bottom:10px;
+}
+h2{font-size:clamp(1.6rem,3vw,2.05rem);margin-bottom:6px}
+h3{font-size:1.16rem;margin:34px 0 10px;letter-spacing:-.004em}
+h4{font-size:.97rem;margin:24px 0 8px;font-family:"IBM Plex Sans",sans-serif;font-weight:600}
+.lede{color:var(--ink-2);font-size:1.05rem;margin-top:14px;max-width:70ch}
+p + p{margin-top:14px}
+section p, section ul, section ol{max-width:72ch}
+ul,ol{padding-left:22px;margin:14px 0}
+li{margin:6px 0}
+li::marker{color:var(--ink-3)}
+strong{font-weight:600;color:var(--ink)}
+
+/* ---------- callouts ---------- */
+.note{
+  border-left:3px solid var(--rule-2);padding:14px 20px;margin:22px 0;
+  background:var(--surface);border-radius:0 2px 2px 0;max-width:72ch;
+}
+.note.warn{border-left-color:var(--signal);background:var(--signal-soft)}
+.note.key{border-left-color:var(--survey);background:var(--survey-soft)}
+.note .tag{
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.14em;
+  text-transform:uppercase;display:block;margin-bottom:7px;color:var(--ink-3);
+}
+.note.warn .tag{color:var(--signal)}
+.note.key .tag{color:var(--survey)}
+
+/* ---------- tables ---------- */
+.scroll{overflow-x:auto;margin:22px 0;border:1px solid var(--rule);border-radius:2px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:460px}
+th,td{padding:11px 16px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}
+thead th{
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:500;
+  background:var(--surface-2);white-space:nowrap;
+}
+tbody tr:last-child td{border-bottom:0}
+td.num,th.num{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tick{color:var(--safe);font-weight:600}
+.cross{color:var(--signal);font-weight:600}
+
+/* ---------- state chips ---------- */
+.chip{
+  display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:11px;
+  letter-spacing:.05em;padding:2px 7px;border-radius:2px;white-space:nowrap;
+  border:1px solid transparent;
+}
+.chip.ok{background:var(--safe-soft);color:var(--safe);border-color:color-mix(in srgb,var(--safe) 28%,transparent)}
+.chip.unk{background:var(--caution-soft);color:var(--caution);border-color:color-mix(in srgb,var(--caution) 32%,transparent)}
+.chip.neg{background:var(--signal-soft);color:var(--signal);border-color:color-mix(in srgb,var(--signal) 30%,transparent)}
+
+/* ---------- diagram ---------- */
+figure{margin:30px 0}
+.fig{
+  border:1px solid var(--rule);border-radius:2px;background:var(--surface);
+  padding:22px 18px 12px;box-shadow:var(--shadow);
+}
+.fig svg{display:block;width:100%;height:auto}
+figcaption{
+  margin-top:12px;font-size:13px;color:var(--ink-3);line-height:1.5;
+  padding-top:11px;border-top:1px solid var(--rule);
+}
+.s-label{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.05em}
+.s-title{font-family:"IBM Plex Sans Condensed",sans-serif;font-size:13px;font-weight:700}
+
+/* ---------- formula ---------- */
+.formula{
+  font-family:"IBM Plex Mono",monospace;font-size:1.05rem;
+  background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--survey);
+  padding:18px 24px;margin:22px 0;border-radius:0 2px 2px 0;
+  display:flex;flex-wrap:wrap;gap:10px 30px;align-items:baseline;
+}
+.formula b{color:var(--survey);font-weight:600}
+
+/* ---------- pipeline ---------- */
+.steps{counter-reset:step;list-style:none;padding:0;margin:22px 0;max-width:72ch}
+.steps li{
+  counter-increment:step;position:relative;padding:0 0 20px 46px;margin:0;
+  border-left:1px solid var(--rule);
+}
+.steps li:last-child{border-left-color:transparent;padding-bottom:0}
+.steps li::before{
+  content:counter(step);position:absolute;left:-13px;top:-2px;
+  width:26px;height:26px;border-radius:50%;
+  background:var(--surface);border:1px solid var(--rule-2);color:var(--ink-3);
+  font-family:"IBM Plex Mono",monospace;font-size:11.5px;font-weight:500;
+  display:flex;align-items:center;justify-content:center;
+}
+.steps li.hero::before{background:var(--survey);border-color:var(--survey);color:var(--surface)}
+:root[data-theme="dark"] .steps li.hero::before{color:var(--ground)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .steps li.hero::before{color:var(--ground)}}
+.steps b{display:block;font-family:"IBM Plex Sans Condensed",sans-serif;font-size:1.02rem;margin-bottom:3px}
+.steps span{color:var(--ink-2);font-size:14.5px}
+
+/* ---------- rules list ---------- */
+.rules{counter-reset:rule;list-style:none;padding:0;margin:24px 0}
+.rules li{
+  counter-increment:rule;display:grid;grid-template-columns:38px 1fr;gap:16px;
+  padding:16px 0;border-top:1px solid var(--rule);margin:0;max-width:74ch;
+}
+.rules li::before{
+  content:counter(rule,decimal-leading-zero);
+  font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--survey);
+  font-variant-numeric:tabular-nums;padding-top:2px;
+}
+.rules b{display:block;font-family:"IBM Plex Sans Condensed",sans-serif;font-size:1.05rem;margin-bottom:4px}
+.rules span{color:var(--ink-2);font-size:15px}
+
+/* ---------- phases ---------- */
+.phase{
+  border:1px solid var(--rule);border-radius:2px;background:var(--surface);
+  margin:14px 0;overflow:hidden;
+}
+.phase-h{
+  display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;
+  padding:13px 20px;background:var(--surface-2);border-bottom:1px solid var(--rule);
+}
+.phase-n{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;
+  color:var(--survey);text-transform:uppercase;
+}
+.phase-t{font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:700;font-size:1.05rem}
+.phase-d{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-3);
+  margin-left:auto;font-variant-numeric:tabular-nums;
+}
+.phase ul{margin:0;padding:14px 20px 16px 38px}
+.phase li{font-size:14.5px;color:var(--ink-2)}
+.phase.now{border-color:color-mix(in srgb,var(--signal) 45%,transparent)}
+.phase.now .phase-h{background:var(--signal-soft)}
+.phase.now .phase-n{color:var(--signal)}
+
+/* ---------- closing ---------- */
+.finals{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);margin-top:26px;border-radius:2px;overflow:hidden;
+}
+.finals article{background:var(--surface);padding:22px 24px}
+.finals .n{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--survey);
+  letter-spacing:.1em;display:block;margin-bottom:9px;
+}
+.finals h4{margin:0 0 7px;font-family:"IBM Plex Sans Condensed",sans-serif;font-size:1.08rem;font-weight:700}
+.finals p{font-size:14.5px;color:var(--ink-2)}
+
+footer{
+  margin-top:70px;padding-top:22px;border-top:1px solid var(--rule);
+  font-size:13px;color:var(--ink-3);display:flex;justify-content:space-between;
+  gap:18px;flex-wrap:wrap;
+}
+footer .mono{letter-spacing:.04em}
+
+@media (max-width:640px){
+  .wrap{padding:0 20px 72px}
+  .bar-in{padding:9px 20px}
+  section{padding-top:44px}
+  .rules li{grid-template-columns:30px 1fr;gap:12px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+
+/* ---------- print / PDF ---------- */
+.print-only{display:none}
+@media print{
+  :root{
+    --ground:#FFFFFF; --surface:#FFFFFF; --surface-2:#F0F2EF;
+    --ink:#14181A; --ink-2:#43504F; --ink-3:#6E7B79;
+    --rule:#D2D8D3; --rule-2:#B4BDB5;
+    --survey:#1E5266; --survey-soft:#E9F0F2;
+    --safe:#33684D; --safe-soft:#E8F0EB;
+    --caution:#8A6309; --caution-soft:#F5EDDA;
+    --signal:#A63F14; --signal-soft:#F8E9E1;
+    --shadow:none;
+  }
+  body{background:#fff;font-size:10.5pt;line-height:1.5}
+  .bar{position:static;backdrop-filter:none;background:#fff}
+  .bar-in{padding:0 0 8px;max-width:none}
+  .countdown{display:none}
+  .print-only{display:inline;font-family:"IBM Plex Mono",monospace;font-size:9pt;color:var(--signal)}
+  .wrap{max-width:none;padding:0}
+  .doc,.lede,.pitch,.standfirst,.note,
+  section p,section ul,section ol{max-width:none}
+  .meta{grid-template-columns:repeat(3,1fr)}
+  .masthead{padding:6px 0 12px}
+  .toc ol{grid-template-columns:repeat(2,1fr)}
+  h1{font-size:25pt}
+  h2{font-size:16pt}
+  h3{font-size:12pt}
+  .standfirst{font-size:11.5pt}
+  section{padding-top:22px}
+  .toc{break-inside:avoid}
+  h2,h3,h4{break-after:avoid}
+  figure,.fig,.scroll,table,.note,.phase,.formula,.finals article,.rules li,.steps li{break-inside:avoid}
+  tr{break-inside:avoid}
+  thead{display:table-header-group}
+  .scroll{overflow:visible}
+  a{color:var(--survey);text-decoration:none}
+  footer{margin-top:26px}
+}
+@page{margin:14mm 26mm}
+</style>
+<style>
+/* ---- results-specific ---- */
+.headline{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule);margin-top:32px;border-radius:2px;overflow:hidden}
+.headline div{background:var(--surface);padding:20px 22px}
+.headline .v{font-family:"IBM Plex Mono",monospace;font-size:2.1rem;font-weight:600;
+  line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.headline .k{font-size:13.5px;color:var(--ink-2);margin-top:10px;line-height:1.42}
+.headline .good .v{color:var(--safe)} .headline .bad .v{color:var(--signal)}
+.headline .neutral .v{color:var(--survey)}
+.verdict{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.04em;
+  padding:2px 8px;border-radius:2px;white-space:nowrap;display:inline-block}
+.v-bad{background:var(--signal-soft);color:var(--signal);
+  border:1px solid color-mix(in srgb,var(--signal) 30%,transparent)}
+.v-unk{background:var(--caution-soft);color:var(--caution);
+  border:1px solid color-mix(in srgb,var(--caution) 32%,transparent)}
+.v-ok{background:var(--safe-soft);color:var(--safe);
+  border:1px solid color-mix(in srgb,var(--safe) 28%,transparent)}
+tr.key td{background:var(--signal-soft)}
+.win{color:var(--safe);font-weight:600}
+.superseded{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--signal)}
+</style>
+
+<div class="bar">
+  <div class="bar-in">
+    <span class="wordmark">Raysense</span>
+    <span class="bar-ps">SIH26053 · DRDO · measured results</span>
+    <span class="bar-spacer"></span>
+    <span class="countdown"><b>103</b> tests · lint clean</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="masthead doc">
+    <div class="eyebrow">Smart India Hackathon 2026 · Problem statement SIH26053 · rev 2</div>
+    <h1>Your lidar cannot see what you can fall into</h1>
+    <p class="standfirst">A defence ground vehicle's lidar detects <strong>92.9%</strong> of what
+      sticks up and <strong>11.5%</strong> of what it can fall into — at <em>full</em> budget, every
+      ray, forty times over. One geometric test closes that gap at a twentieth of the points.</p>
+
+    <div class="headline">
+      <div class="bad"><div class="v">11.5%</div>
+        <div class="k">of ditches detected by a conventional system at <strong>full</strong> scan</div></div>
+      <div class="good"><div class="v">91.4%</div>
+        <div class="k">detected by ours at a <strong>5%</strong> budget</div></div>
+      <div class="neutral"><div class="v">23 km/h</div>
+        <div class="k">max safe speed this sensor actually supports, unadvertised</div></div>
+    </div>
+
+    <div class="note warn">
+      <span class="tag">What this page is</span>
+      <p>Measured results, not a proposal. Every figure comes from a committed CSV in the
+        repository. All are from a controlled testbed where ground truth is <em>known</em> rather
+        than inferred — and <strong>none has yet been corroborated on real sensor data.</strong></p>
+    </div>
+
+    <nav class="toc">
+      <h4>Contents</h4>
+      <ol>
+        <li><a href="#finding">The finding</a></li>
+        <li><a href="#why">Why it happens</a></li>
+        <li><a href="#speed">The speed limit</a></li>
+        <li><a href="#detector">The detector</a></li>
+        <li><a href="#demo">The demo</a></li>
+        <li><a href="#allocator">The allocator</a></li>
+        <li><a href="#limits">What we got wrong</a></li>
+      </ol>
+    </nav>
+  </header>
+
+  <section id="finding">
+    <div class="doc">
+      <span class="sec-no">01 — The finding</span>
+      <h2>Ditches are not a budget problem. They are a blindness problem.</h2>
+      <p class="lede">Negative obstacles — trenches, craters, washouts — are detected by the
+        <strong>absence</strong> of laser returns. A narrow trench is not entered by beams. It is
+        stepped over.</p>
+    </div>
+    <figure>
+      <div class="fig">
+        <svg viewBox="0 0 840 340" role="img" aria-label="Three panels comparing what a lidar records: a sampled patch of ground returns a point; a ditch returns nothing; an unsampled region also returns nothing. The last two records are identical.">
+          <!-- ============ PANEL A ============ -->
+          <rect x="20" y="16" width="240" height="200" fill="var(--surface-2)" rx="2"/>
+          <text x="34" y="40" class="s-label" fill="var(--ink-3)">REGION A</text>
+          <rect x="34" y="56" width="44" height="20" rx="2" fill="var(--survey)"/>
+          <text x="56" y="70" text-anchor="middle" class="s-label" fill="var(--surface)" style="font-size:9px">LIDAR</text>
+          <line x1="78" y1="74" x2="176" y2="140" stroke="var(--survey)" stroke-width="1.6"/>
+          <line x1="34" y1="140" x2="246" y2="140" stroke="var(--ink-3)" stroke-width="2"/>
+          <circle cx="176" cy="140" r="5" fill="var(--safe)"/>
+          <text x="34" y="200" class="s-title" fill="var(--safe)">Beam fired · ground hit</text>
+
+          <!-- ============ PANEL B ============ -->
+          <rect x="300" y="16" width="240" height="200" fill="var(--signal-soft)" rx="2"/>
+          <text x="314" y="40" class="s-label" fill="var(--signal)">REGION B — DITCH</text>
+          <rect x="314" y="56" width="44" height="20" rx="2" fill="var(--survey)"/>
+          <text x="336" y="70" text-anchor="middle" class="s-label" fill="var(--surface)" style="font-size:9px">LIDAR</text>
+          <line x1="358" y1="74" x2="450" y2="138" stroke="var(--signal)" stroke-width="1.6"/>
+          <line x1="450" y1="138" x2="482" y2="162" stroke="var(--signal)" stroke-width="1.6" stroke-dasharray="3 4" opacity="0.5"/>
+          <path d="M314 140 H432 L448 168 H494 L510 140 H526" stroke="var(--ink-3)" stroke-width="2" fill="none"/>
+          <text x="314" y="200" class="s-title" fill="var(--signal)">Beam fired · nothing back</text>
+
+          <!-- ============ PANEL C ============ -->
+          <rect x="580" y="16" width="240" height="200" fill="var(--surface-2)" rx="2"/>
+          <text x="594" y="40" class="s-label" fill="var(--ink-3)">REGION C — SKIPPED</text>
+          <rect x="594" y="56" width="44" height="20" rx="2" fill="var(--survey)"/>
+          <text x="616" y="70" text-anchor="middle" class="s-label" fill="var(--surface)" style="font-size:9px">LIDAR</text>
+          <line x1="638" y1="74" x2="736" y2="140" stroke="var(--ink-3)" stroke-width="1.6" stroke-dasharray="4 5" opacity="0.45"/>
+          <line x1="594" y1="140" x2="806" y2="140" stroke="var(--ink-3)" stroke-width="2"/>
+          <text x="594" y="200" class="s-title" fill="var(--ink-3)">Beam never fired</text>
+
+          <!-- ============ RECORD ROW ============ -->
+          <text x="20" y="248" class="s-label" fill="var(--ink-3)">WHAT THE SENSOR RECORDS</text>
+
+          <rect x="20" y="260" width="240" height="34" rx="2" fill="var(--safe-soft)" stroke="var(--safe)" stroke-width="1"/>
+          <text x="140" y="282" text-anchor="middle" class="s-label" fill="var(--safe)">RETURN @ 12.4 m</text>
+
+          <rect x="300" y="260" width="240" height="34" rx="2" fill="var(--surface)" stroke="var(--rule-2)" stroke-width="1"/>
+          <text x="420" y="282" text-anchor="middle" class="s-label" fill="var(--ink-2)">NO RETURN</text>
+
+          <rect x="580" y="260" width="240" height="34" rx="2" fill="var(--surface)" stroke="var(--rule-2)" stroke-width="1"/>
+          <text x="700" y="282" text-anchor="middle" class="s-label" fill="var(--ink-2)">NO RETURN</text>
+
+          <path d="M300 306 V318 H820 V306" stroke="var(--signal)" stroke-width="1.5" fill="none"/>
+          <text x="560" y="336" text-anchor="middle" class="s-title" fill="var(--signal)">Identical. The sensor cannot tell a ditch from a place it never looked.</text>
+        </svg>
+      </div>
+      <figcaption>The ambiguity at the heart of the problem statement. Region B is a ditch that could destroy the vehicle; region C is ordinary ground the allocator chose to skip. Both produce exactly the same record. Naive adaptive sampling has no way to separate them.</figcaption>
+    </figure>
+    <div class="doc">
+      <p>Coverage inside each planted feature, measured from <strong>40 full scans</strong> — every
+        ray, forty times, no budget limit at all:</p>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Feature</th><th>Kind</th><th class="num">Observed</th></tr></thead>
+        <tbody>
+          <tr><td>Boulder</td><td>positive</td><td class="num">96.2%</td></tr>
+          <tr><td>Boulder</td><td>positive</td><td class="num">90.9%</td></tr>
+          <tr class="key"><td>Trench, 2.4 m wide</td><td>negative</td><td class="num">59.6%</td></tr>
+          <tr class="key"><td>Trench, 3.0 m wide</td><td>negative</td><td class="num">40.6%</td></tr>
+          <tr class="key"><td>Trench, 16 m wide, 6 m deep</td><td>negative</td><td class="num">1.5%</td></tr>
+          <tr><td><em>Driven area, for reference</em></td><td>—</td><td class="num"><em>83.6%</em></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="doc">
+      <p><strong>Spending more rays cannot fix this.</strong> A full scan already spends everything.</p>
+      <div class="note warn">
+        <span class="tag">And it gets worse with more data</span>
+        <p>The share of real hazards reported as <em>safe to drive over</em> rises from 1.9% at a 2%
+          budget to <strong>6.4% at full scan.</strong> The system sees the trench rim, judges it
+          flat, and calls it drivable — while the interior is never observed. More data buys more
+          confidence, not more sight.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="why">
+    <div class="doc">
+      <span class="sec-no">02 — The mechanism</span>
+      <h2>Bumps degrade linearly. Ditches degrade quadratically.</h2>
+      <div class="formula">
+        <span>bump: <b>h ≥ r · Δθ</b></span>
+        <span style="color:var(--ink-3)">but</span>
+        <span>ditch: <b>w ≥ r² · Δθ / h<sub>sensor</sub></b></span>
+      </div>
+      <p>Measured against a level plane with real Ouster OS1-64 geometry — Δθ = 0.714°, 1.8 m mast.
+        The closed form <em>understates</em> the real spacing by about 40% at 40 m, so these are the
+        measured numbers, not the formula's:</p>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th class="num">Range</th><th class="num">Beam spacing on the ground</th>
+          <th class="num">Smallest bump</th><th class="num">Smallest ditch</th></tr></thead>
+        <tbody>
+          <tr><td class="num">10 m</td><td class="num">0.72 m</td><td class="num">0.12 m</td><td class="num">0.69 m</td></tr>
+          <tr><td class="num">20 m</td><td class="num">3.51 m</td><td class="num">0.25 m</td><td class="num">2.77 m</td></tr>
+          <tr class="key"><td class="num">30 m</td><td class="num">9.17 m</td><td class="num">0.37 m</td><td class="num"><strong>6.23 m</strong></td></tr>
+          <tr><td class="num">40 m</td><td class="num">16.51 m</td><td class="num">0.50 m</td><td class="num">11.08 m</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="doc">
+      <p><strong>At 30 m a stock OS1-64 can drive past a six-metre-wide ditch and register
+        nothing.</strong> Not a degraded reading — nothing.</p>
+    </div>
+  </section>
+
+  <section id="speed">
+    <div class="doc">
+      <span class="sec-no">03 — The consequence</span>
+      <h2>The same geometry sets a speed limit nobody published</h2>
+      <p class="lede">A 1 m ditch is guaranteed straddled only out to <strong>12 metres</strong>.
+        With a 2 m/s² braking model, that caps safe speed at 6.4 m/s.</p>
+      <div class="note key">
+        <span class="tag">The capability statement</span>
+        <p>A stock OS1-64 on a UGV that must never drive into a one-metre ditch
+          <strong>cannot safely exceed 23 km/h</strong> — and the sensor gives no indication that
+          this is so.</p>
+      </div>
+      <p>This holds whether or not anything we built works. It is a property of hardware already in
+        the field, derived from geometry.</p>
+    </div>
+  </section>
+
+  <section id="detector">
+    <div class="doc">
+      <span class="sec-no">04 — The detector</span>
+      <h2>The quadratic that causes the blindness, normalised, detects it</h2>
+      <p>Two adjacent beams that both return land a predictable distance apart on level ground. If
+        the far one lands much further out, the surface between them dropped away.</p>
+      <div class="formula"><span><b>anomaly = measured gap ÷ predicted gap at that range</b></span></div>
+      <p>The comparison must be local and range-aware. A fixed threshold flags flat ground several
+        times over, because ground spacing grows quadratically.</p>
+
+      <h3>Threshold: chosen by sweep, not by eye</h3>
+      <p>Scored against the <em>identical terrain with the ditches removed</em> — the only honest
+        control.</p>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th class="num">Threshold</th><th class="num">Ditch recall</th>
+          <th class="num">False cells</th><th class="num">Precision</th></tr></thead>
+        <tbody>
+          <tr><td class="num">2.0</td><td class="num">94.0%</td><td class="num">3,883</td><td class="num">45.6%</td></tr>
+          <tr class="key"><td class="num"><strong>3.0</strong></td><td class="num"><strong>88.0%</strong></td>
+            <td class="num"><strong>436</strong></td><td class="num"><strong>73.3%</strong></td></tr>
+          <tr><td class="num">4.0</td><td class="num">82.6%</td><td class="num">249</td><td class="num">82.7%</td></tr>
+          <tr><td class="num">7.0</td><td class="num">59.6%</td><td class="num">0</td><td class="num">92.2%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="doc">
+      <p><strong>3.0 is the knee.</strong> Against 2.0 it costs six points of recall and removes 89%
+        of the false flags. Going further costs another five points for far less.</p>
+      <h3>What it buys</h3>
+      <p>Negative obstacles detected, with <strong>plain uniform decimation</strong> — no allocator
+        involved:</p>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th class="num">Budget</th><th class="num">Conventional</th>
+          <th class="num">With the gap test</th></tr></thead>
+        <tbody>
+          <tr><td class="num">2%</td><td class="num">6.7%</td><td class="num win">74.9%</td></tr>
+          <tr class="key"><td class="num">5%</td><td class="num">9.7%</td><td class="num win"><strong>91.4%</strong></td></tr>
+          <tr><td class="num">8.6%</td><td class="num">11.3%</td><td class="num win">96.0%</td></tr>
+          <tr><td class="num">100%</td><td class="num">15.2%</td><td class="num win">99.8%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="doc">
+      <div class="note key">
+        <span class="tag">The headline</span>
+        <p><strong>91% of negative obstacles at 5% of the point budget.</strong> A full scan with no
+          absence reasoning finds 12%. Twenty times fewer points, seven times better detection — and
+          it costs 43 ms a frame, against 500 ms for the approach it replaces.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="demo">
+    <div class="doc">
+      <span class="sec-no">05 — The demo</span>
+      <h2>Same sensor, same budget, opposite verdicts</h2>
+      <p class="lede">Both systems at a <strong>2% budget</strong> — 1,280 rays against 1,256, so
+        ours uses slightly fewer. Approaching a 3 m wide, 2.2 m deep trench.</p>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th class="num">Frame</th><th class="num">Distance to ditch</th>
+          <th>Conventional</th><th>Raysense</th></tr></thead>
+        <tbody>
+          <tr><td class="num">4</td><td class="num">18.4 m</td>
+            <td><span class="verdict v-unk">unknown ahead</span></td>
+            <td><span class="verdict v-bad">DITCH AHEAD</span></td></tr>
+          <tr><td class="num">6</td><td class="num">14.8 m</td>
+            <td><span class="verdict v-unk">unknown ahead</span></td>
+            <td><span class="verdict v-bad">DITCH AHEAD</span></td></tr>
+          <tr class="key"><td class="num"><strong>8</strong></td><td class="num"><strong>11.4 m</strong></td>
+            <td><span class="verdict v-ok">clear to drive</span></td>
+            <td><span class="verdict v-bad">DITCH AHEAD</span></td></tr>
+          <tr><td class="num">10</td><td class="num">8.6 m</td>
+            <td><span class="verdict v-bad">DITCH AHEAD</span></td>
+            <td><span class="verdict v-bad">DITCH AHEAD</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="doc">
+      <p><strong>We warn at 18.4 m. The conventional system reports the ground as <em>clear to
+        drive</em> at 11.4 m</strong> and only warns at 8.6 m — 9.8 metres later, and inside the
+        braking distance it would need at any real speed.</p>
+      <p>It does not hold, either: at frames 20 and 22 the conventional system reverts to
+        <em>unknown ahead</em>, because it reasons about heights it can see rather than gaps it
+        cannot.</p>
+    </div>
+  </section>
+
+  <section id="allocator">
+    <div class="doc">
+      <span class="sec-no">06 — The allocator</span>
+      <h2>It wins one metric and loses the other. Both are true.</h2>
+      <p><strong>Whole-map recall</strong> asks <em>did you eventually map every ditch, including one
+        60 m off your route?</em> Coverage wins that, so plain decimation wins it — ours loses,
+        74.9% against 57.6% at a 2% budget.</p>
+      <p><strong>Warning distance</strong> asks <em>how far off was the ditch ahead when you noticed
+        it?</em> That is what a vehicle cares about, and concentration wins it:</p>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th class="num">Budget</th><th class="num">uniform</th>
+          <th class="num">front wedge</th><th class="num">Raysense</th></tr></thead>
+        <tbody>
+          <tr class="key"><td class="num">2%</td><td class="num">12.3 m</td><td class="num">19.1 m</td>
+            <td class="num win"><strong>23.2 m</strong></td></tr>
+          <tr><td class="num">5%</td><td class="num">15.0 m</td><td class="num">21.5 m</td>
+            <td class="num win">26.4 m</td></tr>
+          <tr><td class="num">10%</td><td class="num">18.3 m</td><td class="num win">30.2 m</td>
+            <td class="num">28.3 m</td></tr>
+          <tr><td class="num">20%</td><td class="num">21.9 m</td><td class="num win">30.2 m</td>
+            <td class="num">28.3 m</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="doc">
+      <p>At a 2% budget the allocator gives <strong>1.88× the warning</strong> of uniform — 5.8
+        seconds to react instead of 3.1 — and it is the only method that finds all four ditches at
+        that budget. <strong>Above about 10% the static front wedge overtakes it.</strong> If a slide
+        quotes an allocator number, quote the 2% one, and say the limitation before being asked.</p>
+    </div>
+  </section>
+
+  <section id="limits">
+    <div class="doc">
+      <span class="sec-no">07 — What we got wrong</span>
+      <h2>Three things measurement overturned</h2>
+      <p class="lede">Each of these was believed, written down, and then disproved by building it.
+        Volunteering them is the most credible thing we can do in front of a technical jury.</p>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>We believed</th><th>Measurement said</th></tr></thead>
+        <tbody>
+          <tr><td>The contribution is <strong>adaptive allocation</strong> — same safety at a third
+            of the points</td>
+            <td>The contribution is a <strong>detector</strong>. Allocation loses to plain
+              decimation on recall and wins only on warning distance, at tight budgets</td></tr>
+          <tr><td>The safety floor is <span class="mono">Δθ ≤ h/r</span></td>
+            <td>Ditches bind <strong>quadratically</strong>. A floor sized for bumps is met while
+              ditches stay invisible</td></tr>
+          <tr><td>A ditch shows the literature's <strong>rear-wall signature</strong></td>
+            <td>A ditch is usually <strong>stepped over</strong>. The absence test finds almost none;
+              the gap test finds 91%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="doc">
+      <h3>Standing limitations</h3>
+      <ul>
+        <li><strong>73% precision, not 100%.</strong> Crest occlusions produce genuine range gaps.
+          Whether that is a false positive is arguable — the ground behind a crest <em>is</em>
+          unobserved — but it is not zero.</li>
+        <li><strong>Nothing has touched real sensor data.</strong> RELLIS-3D is the intended
+          corroboration; the sensor's azimuth resolution, label packing and pose frame are all
+          still unverified, and the first is the denominator of every budget percentage here.</li>
+        <li><strong>The official problem-statement text has never been read.</strong> All of this is
+          built from the title and the domain.</li>
+      </ul>
+      <div class="note">
+        <span class="tag">Reproducing</span>
+        <p class="mono" style="font-size:13.5px;line-height:1.7">
+          python scripts/build_ground_truth.py --frames 40<br>
+          python scripts/run_sweep.py --frames 40 --allocators full uniform front_roi raysense<br>
+          python scripts/threshold_sweep.py --frames 40<br>
+          python scripts/make_demo.py --fraction 0.02 --frames 40<br>
+          pytest -q &amp;&amp; ruff check src tests scripts
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Team Raysense · Smart India Hackathon 2026</span>
+    <span class="mono">SIH26053 · DRDO · 103 tests · rev 2</span>
+  </footer>
+</div>
