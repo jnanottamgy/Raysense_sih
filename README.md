@@ -28,6 +28,18 @@ bash scripts/verify_reproducible.sh
 ```
 
 Builds a clean virtualenv from `pyproject.toml`, reruns everything, and fails if any number
-differs from the committed CSVs. Verified bit-identical at tag `v1.0-frozen`.
+differs from the committed CSVs.
+
+**Freeze point:** commit `fe046ad` — *"Record that the freeze reproduces bit-identically"*.
+Verified from clean: 13 rows compared, largest difference in any metric `0.00e+00`.
+
+The annotated tag `v1.0-frozen` exists locally but could not be pushed from the environment
+this was built in — that environment accepts branch pushes but rejects tag refs. To restore
+it from any clone:
+
+```bash
+git tag -a v1.0-frozen fe046ad -m "Raysense v1.0 — frozen for SIH26053 idea submission"
+git push origin v1.0-frozen
+```
 
 **Problem statement:** SIH26053 · DRDO · Software · Smart Automation
