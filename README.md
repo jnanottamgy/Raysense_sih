@@ -21,6 +21,11 @@ The college internal hackathon deadline is earlier and is set by your SPOC.
 | [`results/demo.html`](results/demo.html) | Offline side-by-side demo player |
 | [`docs/raysense-results.html`](docs/raysense-results.html) | Shareable web version of the results |
 
+## Testing
+
+See **[`docs/TESTING.md`](docs/TESTING.md)** — setup, a 20-second smoke test, and five ways
+to try to break the claims.
+
 ## Reproducing
 
 ```bash
