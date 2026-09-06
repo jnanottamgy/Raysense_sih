@@ -1,5 +1,23 @@
 # Team Raysense — SIH26053 Battle Plan
 
+> ## ⚠ SUPERSEDED — do not present from this document
+>
+> This was the plan written before anything was built. Building it changed the central
+> claim twice, both times toward something better supported. **The measured results are in
+> [`RESULTS.md`](RESULTS.md); present from there.**
+>
+> What changed:
+>
+> | This document says | What was actually measured |
+> |---|---|
+> | The contribution is **adaptive allocation** — same safety at a third of the points | The contribution is a **detector**. Allocation loses to plain decimation on whole-map recall, and wins only on warning distance at tight budgets. |
+> | The safety floor is `Δθ ≤ h/r` (positive obstacles) | Ditches bind **quadratically**: `Δθ ≤ w·h/r²`. A floor sized for bumps is met while ditches stay invisible. |
+> | A ditch shows the literature's rear-wall signature | A ditch is usually **stepped over**, not fallen into. The absence test finds almost none of them; the gap test finds 91%. |
+>
+> The strategy, presentation rules, schedule, roles and risk register below all still hold.
+> Only the technical claim is out of date.
+
+
 **PS:** SIH26053 · **DRDO** · Software · Smart Automation ·  ₹1,00,000
 **Title:** Adaptive Variable Resolution 2.5D Lidar Mapping for Dynamic Environment Perception
 

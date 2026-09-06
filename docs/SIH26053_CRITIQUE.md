@@ -1,5 +1,9 @@
 # SIH26053 — Adaptive Variable Resolution 2.5D Lidar Mapping (DRDO)
 
+> **Historical.** This reviewed the original proposal before anything was built.
+> Its diagnosis held up; its proposed fix did not survive measurement. See
+> [`RESULTS.md`](RESULTS.md).
+
 **Team Raysense — brutal review of the proposed approach.**
 Compiled 5 September 2026.
 

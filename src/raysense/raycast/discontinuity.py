@@ -30,9 +30,18 @@ from raysense.mapping import FixedGridMap
 from raysense.sensor import SensorModel
 from raysense.types import CellState, ScanResult
 
-# Below this the gap is ordinary terrain roughness; above it, the surface
-# between two beams is materially lower than the one they landed on.
-DEFAULT_THRESHOLD = 2.0
+# Chosen by sweep, not by eye — see scripts/threshold_sweep.py and
+# results/threshold_sweep.csv. Scored against the identical terrain with the
+# ditches removed, which is the only honest control:
+#
+#   2.0  ->  94.0% ditch recall,  3,883 false cells,  45.6% precision
+#   3.0  ->  88.0% ditch recall,    436 false cells,  73.3% precision   <- knee
+#   4.0  ->  82.6% ditch recall,    249 false cells,  82.7% precision
+#
+# Moving 2.0 -> 3.0 costs six points of recall and removes 89% of the false
+# flags. Going further costs another five points for far less, so 3.0 is where
+# the curve turns.
+DEFAULT_THRESHOLD = 3.0
 MIN_GAP = 0.5      # m — ignore gaps too small to hide anything a vehicle cares about
 
 

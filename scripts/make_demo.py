@@ -46,17 +46,18 @@ def counters_panel(ax, label, stats, highlight: bool) -> None:
         ("ditch cells flagged", f"{stats['flagged']:,}"),
         ("ditches found", f"{stats['found']} / {stats['total']}"),
         ("nearest ditch", stats["nearest"]),
+        ("first warned at", stats["warned_at"]),
         ("VERDICT", stats["verdict"]),
     ]
     for i, (k, v) in enumerate(rows):
-        y = 0.72 - i * 0.16
+        y = 0.76 - i * 0.145
         ax.text(0, y, k, fontsize=9, color=INK["muted"], transform=ax.transAxes)
         ax.text(1.0, y, v, fontsize=11, weight="bold", ha="right",
                 color=colour if k == "VERDICT" else INK["primary"],
                 transform=ax.transAxes)
 
 
-def stats_for(trav, rays, flagged, feat_masks, nearest_idx, near_label) -> dict:
+def stats_for(trav, rays, flagged, feat_masks, nearest_idx, near_label, flagged_at) -> dict:
     """What each system currently believes, for the counter strip."""
     found = sum(int((trav[m] == int(Traversability.BLOCKED)).any()) for m in feat_masks)
     near = feat_masks[nearest_idx]
@@ -65,14 +66,18 @@ def stats_for(trav, rays, flagged, feat_masks, nearest_idx, near_label) -> dict:
     verdict = ("DITCH AHEAD" if blocked
                else "clear to drive" if drivable else "unknown ahead")
     return {"rays": rays, "flagged": flagged, "found": found,
-            "total": len(feat_masks), "nearest": near_label, "verdict": verdict}
+            "total": len(feat_masks), "nearest": near_label, "verdict": verdict,
+            "warned_at": "—" if flagged_at is None else f"{flagged_at:.0f} m out"}
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--scene", default="offroad_course", choices=sorted(SCENES))
     ap.add_argument("--sensor", default="configs/sensor/ouster_os1_64.yaml")
-    ap.add_argument("--allocator", default="uniform", choices=sorted(BASELINES))
+    ap.add_argument("--baseline", default="uniform", choices=sorted(BASELINES),
+                    help="what a conventional system does: heights only")
+    ap.add_argument("--ours", default="raysense", choices=sorted(BASELINES),
+                    help="the full system: need-weighted budget plus the gap test")
     ap.add_argument("--fraction", type=float, default=0.05)
     ap.add_argument("--frames", type=int, default=40)
     ap.add_argument("--seed", type=int, default=7)
@@ -87,8 +92,11 @@ def main() -> int:
 
     off = FixedGridMap(scene.map_config)
     on = FixedGridMap(scene.map_config)
-    alloc_off = BASELINES[args.allocator]()
-    alloc_on = BASELINES[args.allocator]()
+    alloc_off = BASELINES[args.baseline]()
+    alloc_on = BASELINES[args.ours]()
+    # when each system first flags the ditch it is approaching — the metric the
+    # allocator actually wins on, and the one a driver would feel
+    first_flag = {"off": None, "on": None}
 
     neg_features = [f for f in scene.terrain.features if f.kind == "negative"]
     X, Y = off.cell_centres()
@@ -107,10 +115,12 @@ def main() -> int:
 
     for frame, origin, full in drive(scene.terrain, sensor, scene.path):
         backend = ReplayBackend(full)
+        rays_used = {}
         for emap, alloc, detect in ((off, alloc_off, False), (on, alloc_on, True)):
             world = WorldState(sensor=sensor, frame=frame, origin=origin, emap=emap)
             scan = backend.acquire(alloc.allocate(world, budget))
             emap.integrate(scan.points, frame=frame)
+            rays_used["on" if detect else "off"] = scan.n_fired
             if detect:
                 flagged_on += mark_discontinuities(emap, scan, sensor, frame=frame)
 
@@ -118,13 +128,22 @@ def main() -> int:
             continue
 
         trav_off, trav_on = classify(off), classify(on)
+        d_all = [np.hypot(*(np.asarray(f.center) - origin[:2])) for f in neg_features]
+        kk = int(np.argmin(d_all))
+        for tag, trav in (("off", trav_off), ("on", trav_on)):
+            if first_flag[tag] is None and (
+                trav[feat_masks[kk]] == int(Traversability.BLOCKED)
+            ).any():
+                first_flag[tag] = d_all[kk]
         # the ditch the vehicle is closest to, and what each system says about it
         d = [np.hypot(*(np.asarray(f.center) - origin[:2])) for f in neg_features]
         k = int(np.argmin(d))
         near_label = f"{neg_features[k].label} @ {d[k]:.0f} m"
 
-        s_off = stats_for(trav_off, budget, 0, feat_masks, k, near_label)
-        s_on = stats_for(trav_on, budget, flagged_on, feat_masks, k, near_label)
+        s_off = stats_for(trav_off, rays_used["off"], 0, feat_masks, k, near_label,
+                          first_flag["off"])
+        s_on = stats_for(trav_on, rays_used["on"], flagged_on, feat_masks, k, near_label,
+                         first_flag["on"])
 
         fig = Figure(figsize=(15.0, 6.4), dpi=110, facecolor=INK["surface"])
         gs = fig.add_gridspec(2, 2, height_ratios=[4.2, 1.0], hspace=0.05, wspace=0.12)
@@ -132,22 +151,22 @@ def main() -> int:
         c1, c2 = fig.add_subplot(gs[1, 0]), fig.add_subplot(gs[1, 1])
 
         draw_traversability(a1, off, terrain=scene.terrain,
-                            title="Baseline — heights only")
+                            title=f"Conventional — {args.baseline}, heights only")
         draw_traversability(a2, on, terrain=scene.terrain,
-                            title="Raysense — plus the discontinuity test")
+                            title="Raysense — need-weighted budget + gap test")
         for ax in (a1, a2):
             ax.plot(origin[0], origin[1], marker="^", ms=11, color=INK["primary"],
                     mec="white", mew=1.2, zorder=9)
             ax.set_xlim(-60, 80)
             ax.set_ylim(-40, 40)
 
-        counters_panel(c1, "Baseline", s_off, s_off["verdict"] == "DITCH AHEAD")
+        counters_panel(c1, "Conventional", s_off, s_off["verdict"] == "DITCH AHEAD")
         counters_panel(c2, "Raysense", s_on, s_on["verdict"] == "DITCH AHEAD")
 
         fig.suptitle(
             f"Frame {frame:02d} / {scene.n_frames}     "
-            f"{args.allocator} at {args.fraction:.0%} of a full scan     "
-            f"identical rays, identical scene",
+            f"both at {args.fraction:.0%} of a full scan     "
+            f"same sensor, same scene, same budget",
             fontsize=12, weight="bold", color=INK["primary"], x=0.007, ha="left")
 
         png = args.frame_dir / f"frame_{frame:03d}.png"
@@ -155,10 +174,10 @@ def main() -> int:
         buf = io.BytesIO()
         fig.savefig(buf, format="png", dpi=90, facecolor=fig.get_facecolor())
         encoded.append(base64.b64encode(buf.getvalue()).decode())
-        captions.append(f"frame {frame} — baseline: {s_off['verdict']} · "
-                        f"raysense: {s_on['verdict']}")
-        print(f"  frame {frame:3d}  baseline: {s_off['verdict']:<15} "
-              f"raysense: {s_on['verdict']}")
+        captions.append(f"frame {frame} · {d_all[kk]:.0f} m to the nearest ditch — "
+                        f"conventional: {s_off['verdict']} · raysense: {s_on['verdict']}")
+        print(f"  frame {frame:3d}  {d_all[kk]:5.1f} m to ditch   "
+              f"conventional: {s_off['verdict']:<15} raysense: {s_on['verdict']}")
 
     write_player(args.out, encoded, captions, scene, args)
     print(f"\nwrote {args.out}  ({len(encoded)} frames embedded, fully offline)")
@@ -185,7 +204,7 @@ def write_player(out: Path, frames: list[str], captions: list[str], scene, args)
         padding:7px 16px;font-size:13px;cursor:pointer}}
  button:hover{{background:#2A3335}} input{{width:min(560px,70vw)}}
 </style>
-<h1>Raysense &middot; {args.allocator} at {args.fraction:.0%} of a full scan</h1>
+<h1>Raysense &middot; both systems at {args.fraction:.0%} of a full scan</h1>
 <img id=f><div id=cap></div>
 <div class=bar>
  <button onclick=step(-1)>&#9664; prev</button>
