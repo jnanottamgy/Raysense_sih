@@ -21,4 +21,13 @@ The college internal hackathon deadline is earlier and is set by your SPOC.
 | [`results/demo.html`](results/demo.html) | Offline side-by-side demo player |
 | [`docs/raysense-results.html`](docs/raysense-results.html) | Shareable web version of the results |
 
+## Reproducing
+
+```bash
+bash scripts/verify_reproducible.sh
+```
+
+Builds a clean virtualenv from `pyproject.toml`, reruns everything, and fails if any number
+differs from the committed CSVs. Verified bit-identical at tag `v1.0-frozen`.
+
 **Problem statement:** SIH26053 · DRDO · Software · Smart Automation

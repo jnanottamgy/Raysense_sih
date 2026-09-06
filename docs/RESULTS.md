@@ -192,6 +192,11 @@ Frame image: `results/demo_frames/frame_008.png`
 
 ## Reproducing
 
+**Verified.** `bash scripts/verify_reproducible.sh` builds a virtualenv from
+`pyproject.toml` alone, rebuilds the ground truth and the sweep from nothing, and diffs the
+result against the committed CSVs. Last run: **13 rows compared, largest difference in any
+metric 0.00e+00 — bit-identical.**
+
 ```bash
 python scripts/build_ground_truth.py --frames 40          # cached ground truth
 python scripts/run_sweep.py --frames 40 \
