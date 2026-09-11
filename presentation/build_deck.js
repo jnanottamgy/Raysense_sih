@@ -38,7 +38,7 @@ s.addText('Adaptive Variable Resolution 2.5D Lidar Mapping', { x:0.9, y:1.72, w:
   align:'center', fontSize:33, bold:true, fontFace:SERIF, color:BLUE, isTextBox:true });
 s.addText('for Dynamic Environment Perception', { x:0.9, y:2.40, w:11.5, h:0.52,
   align:'center', fontSize:24, fontFace:SERIF, color:INK2, isTextBox:true });
-s.addImage({ path:D+'fig_threestate.png', x:2.87, y:3.02, w:7.6, h:7.6/3.237 });
+s.addImage({ path:D+'fig_threestate.png', x:2.57, y:3.10, w:8.2, h:8.2/3.711 });
 const meta=[['PS ID','SIH26053',SEN],['ORGANISATION','DRDO',NEG],
             ['THEME','Smart Vehicles',OBS],['CATEGORY','Software',OK]];
 meta.forEach((m,i)=>{ const x=0.95+i*3.0;
@@ -56,7 +56,7 @@ s.addNotes('PRANAVI — 55s. PS ID + DRDO. Then 93% / 11%. PAUSE 3s after "eleve
 s = p.addSlide(); chrome(s,'Adaptive Point-Budget Lidar Perception for UGVs',2);
 s.addImage({ path:D+'fig_donuts.png', x:0.40, y:1.00, w:4.55, h:4.55/1.795 });
 cap(s,'A FULL SCAN ALREADY MISSES 9 IN 10 DITCHES',0.40,3.62,4.55,NEG,11.5);
-s.addImage({ path:D+'absence.png', x:5.35, y:0.98, w:7.55, h:7.55/1.731 });
+s.addImage({ path:D+'absence.png', x:5.35, y:1.12, w:7.55, h:7.55/1.855 });
 cap(s,'A DITCH AND A PATCH YOU NEVER LOOKED AT GIVE THE SAME SIGNAL',
   5.35,5.42,7.55,NEG,11.5);
 chip(s,0.40,4.10,4.55,2.62,'F0F5F1',OK);
@@ -75,7 +75,7 @@ s.addNotes('JEEVIKA — 96s. Walk A / B / C. Land on "B and C are identical". Th
 
 /* ============ 3 · TECHNICAL APPROACH ============ */
 s = p.addSlide(); chrome(s,'TECHNICAL APPROACH',3);
-s.addImage({ path:D+'fig_pipeline.png', x:0.40, y:0.95, w:5.95, h:5.95/1.469 });
+s.addImage({ path:D+'fig_pipeline.png', x:0.40, y:1.13, w:5.95, h:5.95/1.594 });
 s.addImage({ path:D+'fig_quadratic.png', x:6.72, y:0.95, w:6.2, h:6.2/1.535 });
 cap(s,'DITCHES DEGRADE QUADRATICALLY · BUMPS ONLY LINEARLY',6.72,5.03,6.2,NEG,11.5);
 chip(s,6.72,5.42,6.2,0.86,'FDF1EA',NEG);
