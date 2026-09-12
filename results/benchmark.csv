@@ -1,0 +1,6 @@
+device,budget,rays,total_ms_median,total_ms_p95,allocate_ms_median,acquire_ms_median,integrate_ms_median,detect_ms_median,absence_ms_median,frames,repeats,allocator,sensor,n_rays_native,cpu,cores_available,machine,system,python,numpy
+Intel(R) Xeon(R) Processor @ 2.10GHz,0.02,1311,0.707,1.222,0.223,0.102,0.159,0.183,68.115,20,5,uniform,ouster_os1_64,65536,Intel(R) Xeon(R) Processor @ 2.10GHz,4,x86_64,Linux 6.18.44-fc-v24,3.11.15,2.4.6
+Intel(R) Xeon(R) Processor @ 2.10GHz,0.05,3277,1.484,2.202,0.56,0.188,0.321,0.336,252.534,20,5,uniform,ouster_os1_64,65536,Intel(R) Xeon(R) Processor @ 2.10GHz,4,x86_64,Linux 6.18.44-fc-v24,3.11.15,2.4.6
+Intel(R) Xeon(R) Processor @ 2.10GHz,0.1,6554,2.663,8.765,0.956,0.282,0.478,0.937,241.791,20,5,uniform,ouster_os1_64,65536,Intel(R) Xeon(R) Processor @ 2.10GHz,4,x86_64,Linux 6.18.44-fc-v24,3.11.15,2.4.6
+Intel(R) Xeon(R) Processor @ 2.10GHz,0.5,32768,14.604,18.762,4.849,0.904,2.102,6.916,622.412,20,5,uniform,ouster_os1_64,65536,Intel(R) Xeon(R) Processor @ 2.10GHz,4,x86_64,Linux 6.18.44-fc-v24,3.11.15,2.4.6
+Intel(R) Xeon(R) Processor @ 2.10GHz,1.0,65536,28.774,35.776,11.102,1.317,4.054,12.416,793.336,20,5,uniform,ouster_os1_64,65536,Intel(R) Xeon(R) Processor @ 2.10GHz,4,x86_64,Linux 6.18.44-fc-v24,3.11.15,2.4.6

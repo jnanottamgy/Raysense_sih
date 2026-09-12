@@ -282,7 +282,7 @@ do not say it to a judge.**
 | Negative obstacles found by us, at a 5% budget | **91.4%** |
 | Point budget reduction | **20× fewer** |
 | Warning distance advantage at a 2% budget | **1.88×** — 23 m vs 12 m |
-| Detector cost | **43 ms per frame** |
+| Per-frame cost at a 5% budget | **1.5 ms** — 67× inside a 10 Hz frame |
 | Precision at the chosen threshold | **73%** — not 100% |
 | Maximum safe speed, 1 m ditch, stock OS1-64 | **23 km/h** |
 | Automated tests | **103 passing** |

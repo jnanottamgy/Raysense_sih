@@ -103,11 +103,12 @@ s.addText([{text:'Δθ  ≤  w · h',options:{bold:true,fontSize:21}},
            {text:'sensor',options:{subscript:true,bold:true,fontSize:21}},
            {text:'  /  r²',options:{bold:true,fontSize:21}}],
   { x:6.72, y:5.55, w:6.2, h:0.6, align:'center', fontFace:SANS, color:NEG, isTextBox:true });
-/* every chip below is checked against the code: numpy/matplotlib/pyyaml/pandas
-   are the only runtime deps, the map is FixedGridMap, ReplayBackend is the one
-   backend that exists, and 43 ms is a desktop-CPU figure, not an embedded one */
+/* every chip is checked against the code and the committed CSVs: numpy /
+   matplotlib / pyyaml / pandas are the only runtime deps, the map is
+   FixedGridMap, ReplayBackend is the one backend that exists, and the timing
+   is results/benchmark.csv at the 5% budget — Xeon 2.10 GHz, not embedded */
 const tech=[['Python 3.11 · NumPy',SEN],['Fixed-grid 2.5D map',OBS],
-            ['Replay + live-sensor seam',OK],['43 ms / frame · CPU',NEG]];
+            ['Replay + live-sensor seam',OK],['1.5 ms / frame at 5%',NEG]];
 tech.forEach((t,i)=>{ const x=6.72+(i%2)*3.18, y=6.44+Math.floor(i/2)*0.0;
   chip(s,x,y,3.02,0.46);
   s.addShape(p.ShapeType.ellipse,{x:x+0.14,y:y+0.14,w:0.18,h:0.18,fill:{color:t[1]}});

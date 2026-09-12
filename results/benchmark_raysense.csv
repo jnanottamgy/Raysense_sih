@@ -1,0 +1,4 @@
+device,budget,rays,total_ms_median,total_ms_p95,allocate_ms_median,acquire_ms_median,integrate_ms_median,detect_ms_median,frames,repeats,allocator,sensor,n_rays_native,cpu,cores_available,machine,system,python,numpy
+Intel(R) Xeon(R) Processor @ 2.10GHz,0.02,1311,6.348,8.817,5.483,0.124,0.196,0.531,20,5,raysense,ouster_os1_64,65536,Intel(R) Xeon(R) Processor @ 2.10GHz,4,x86_64,Linux 6.18.44-fc-v24,3.11.15,2.4.6
+Intel(R) Xeon(R) Processor @ 2.10GHz,0.05,3277,7.48,9.814,6.029,0.188,0.379,0.744,20,5,raysense,ouster_os1_64,65536,Intel(R) Xeon(R) Processor @ 2.10GHz,4,x86_64,Linux 6.18.44-fc-v24,3.11.15,2.4.6
+Intel(R) Xeon(R) Processor @ 2.10GHz,0.1,6554,9.541,12.934,7.079,0.278,0.505,1.303,20,5,raysense,ouster_os1_64,65536,Intel(R) Xeon(R) Processor @ 2.10GHz,4,x86_64,Linux 6.18.44-fc-v24,3.11.15,2.4.6

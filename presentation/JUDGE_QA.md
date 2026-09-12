@@ -212,7 +212,7 @@ Any of you can be asked any of these. Drill until they come out without thinking
 > off-road set, has almost none, so we'd be training on the sensor's own blind spot.
 > **Verifiability** — DRDO has to certify this. A closed-form geometric bound can be argued
 > in a safety case; a network's failure modes cannot. **It isn't needed** — the physics gave
-> us 91% at 5% budget with 43 ms of NumPy. A network would be a heavier answer to a solved
+> us 91% at 5% budget with 1.5 ms of NumPy. A network would be a heavier answer to a solved
 > question. Where learning *would* help is classifying what kind of negative obstacle it is,
 > once you know one is there. That's downstream of us.
 
@@ -318,16 +318,34 @@ Any of you can be asked any of these. Drill until they come out without thinking
 > it retrofittable to fielded vehicles rather than a next-generation-platform proposal.
 
 **Q. Will it run on embedded hardware — Jetson, a rugged box?**
-> **We have not benchmarked on embedded hardware, so we won't quote a number we haven't
-> measured.** What we can say: 43 ms per frame on our development machine's CPU, in pure
-> Python and NumPy, against 500 ms for the method it replaces. The kernel is per-ray and embarrassingly
-> parallel, so the obvious routes are Numba JIT or a GPU kernel. But that's an engineering
-> estimate, not a measurement, and we'll label it as one.
+> **We have not run it on a Jetson, so we quote no Jetson number.** What we *have* measured,
+> on an Intel Xeon at 2.10 GHz: **1.5 ms per frame at the 5% budget that produces the 91%
+> result**, p95 2.2 ms — **67× inside a 100 ms frame at 10 Hz**. Cost is linear in rays at
+> **0.44 µs per ray, R² = 0.9998**. `results/benchmark.csv`.
+>
+> Because it is linear with a measured constant, the bound is easy arithmetic: a device
+> **20× slower per core still lands at 30 ms** — inside the frame. That is arithmetic on a
+> measured fit, not a measurement. The benchmark takes a `--label`, so one command on a
+> Jetson produces a comparable row and we would publish whatever it says.
 
-**Q. 43 ms — is that real-time?**
-> At 10 Hz lidar, 43 ms leaves headroom in a 100 ms budget on our development CPU. On
-> target hardware, unmeasured. The honest statement is: it is cheap relative to what it replaces,
-> and we have not yet proven it on the platform.
+**Q. What does it cost per frame?**
+
+| Budget | allocate | acquire | integrate | detect | **TOTAL** | p95 |
+|---:|---:|---:|---:|---:|---:|---:|
+| 2% | 0.22 | 0.10 | 0.16 | 0.18 | **0.71 ms** | 1.22 ms |
+| **5%** | 0.56 | 0.19 | 0.32 | 0.34 | **1.48 ms** | **2.20 ms** |
+| 100% | 11.10 | 1.32 | 4.05 | 12.42 | **28.77 ms** | 35.78 ms |
+
+> Timed: allocate, acquire, integrate, detect. **Not timed: generating the scan** — on a
+> vehicle the sensor does that, so timing it would measure our simulator. 20 frames × 5
+> repeats. Milliseconds.
+
+**Q. Is that real-time?**
+> At 10 Hz the frame budget is 100 ms and we use **1.5**. Sixty-seven times over.
+> The method we replace — the absence test — costs **252 ms at the same budget**, so it
+> cannot run in real time at all. That is the practical argument for the gap test, separate
+> from the 9.7% → 91.4% detection difference.
+
 
 **Q. Does it need a steerable lidar?**
 > The detector does not — it works with plain uniform decimation of a normal spinning lidar,

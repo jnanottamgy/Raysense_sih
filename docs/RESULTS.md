@@ -107,7 +107,40 @@ allocator involved:
 > **91% of negative obstacles at 5% of the point budget. A full scan with no absence
 > reasoning finds 12%.** Twenty times fewer points, seven times better detection.
 
-It costs **43 ms per frame**, against 500 ms for the absence test it replaces.
+### What it costs — measured, not estimated
+
+`scripts/benchmark.py` times the four stages a vehicle actually runs per frame —
+allocate, acquire, integrate, detect — over 20 frames x 5 repeats. Generating the scan is
+excluded: on a vehicle the sensor does that. Machine: **Intel Xeon @ 2.10 GHz, 4 cores,
+Python 3.11.15, NumPy 2.4.6** (`results/benchmark.csv`).
+
+| Budget | allocate | acquire | integrate | **detect** | **TOTAL** | p95 |
+|---:|---:|---:|---:|---:|---:|---:|
+| 2% | 0.22 | 0.10 | 0.16 | **0.18** | **0.71 ms** | 1.22 ms |
+| **5%** | 0.56 | 0.19 | 0.32 | **0.34** | **1.48 ms** | **2.20 ms** |
+| 10% | 0.96 | 0.28 | 0.48 | **0.94** | **2.66 ms** | 8.76 ms |
+| 100% | 11.10 | 1.32 | 4.05 | **12.42** | **28.77 ms** | 35.78 ms |
+
+**1.5 ms at the 5% budget that produces the 91.4% result** — against a 100 ms frame at
+10 Hz, that is **67x headroom**. Cost is linear in rays: **0.44 µs per ray, R² = 0.9998**.
+
+The absence test this replaces costs **252 ms at the same 5% budget** and 793 ms at full
+scan — it cannot run in real time at all, which is the practical argument for the gap test
+beyond the 9.7% -> 91.4% detection difference.
+
+With the steered `raysense` allocator instead of uniform decimation, the need-map scoring
+adds a fixed ~5.5 ms: 7.5 ms at 5% (`results/benchmark_raysense.csv`). Still 13x inside
+the frame.
+
+> **Correction.** Earlier drafts of this document and the deck quoted *"43 ms per frame
+> against 500 ms"*. That number was never written to a CSV and does not reproduce. It
+> appears to have been the steered allocator at or near a **full** budget (arithmetic on
+> the measured fit gives 45.5 ms at 100%), quoted next to a **5%** detection result. The
+> table above supersedes it. The error understated the system.
+
+**Not measured: any embedded or ARM device.** The benchmark takes `--label`, so a Jetson
+run produces a comparable row with one command. Until someone runs it, we quote no Jetson
+number.
 
 ---
 

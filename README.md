@@ -44,7 +44,9 @@ allocator involved:
 
 > **91 % of negative obstacles at 5 % of the point budget.** A full scan with no absence
 > reasoning finds 12 %. Twenty times fewer points, nearly eight times the detection.
-> It costs **43 ms per frame** against 500 ms for the method it replaces.
+> It costs **1.5 ms per frame** at that 5 % budget — 67× inside a 100 ms frame at 10 Hz
+> — against **252 ms** for the method it replaces, which cannot run in real time at all.
+> Measured on an Intel Xeon @ 2.10 GHz; see [`results/benchmark.csv`](results/benchmark.csv).
 
 The map carries **three** states — `OBSERVED`, `UNKNOWN`, `CANDIDATE_NEGATIVE` — and
 `UNKNOWN` is the zero value, so a fresh map starts out admitting it knows nothing. Nothing
@@ -59,8 +61,10 @@ across randomised maps.
    budget it gives **23.2 m of warning against 12.3 m**, 1.88×. We quote it only there.
 3. **Nothing has touched real sensor data.** Zero frames. RELLIS-3D corroboration is the
    next task; `n_azimuth`, the `.label` packing and the pose frame are all unverified.
-4. **No embedded benchmark.** 43 ms is a development-CPU figure. We do not quote a Jetson
-   number we have not measured.
+4. **No embedded benchmark.** 1.5 ms is an x86 figure. Cost is linear in rays
+   (0.44 µs/ray, R² = 0.9998), so the arithmetic bounds well — but we have not run a
+   Jetson and quote no Jetson number. `scripts/benchmark.py --label "..."` produces a
+   comparable row on any device.
 
 Every number above comes from a committed CSV in [`results/`](results/). None is typed by
 hand. See **[`docs/RESULTS.md`](docs/RESULTS.md)** for the full record.
