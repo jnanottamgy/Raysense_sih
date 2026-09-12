@@ -1,0 +1,610 @@
+<title>Raysense Judge Drill</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#FBFCFA; --surface:#FFFFFF; --surface-2:#F3F6F1; --surface-3:#E9EEE6;
+  --ink:#14181A; --ink-2:#43504F; --ink-3:#6E7B79; --rule:#DCE2D8; --rule-2:#EDF0EA;
+  --neg:#C05A24; --ok:#25875A; --sen:#227DA8; --obs:#6B47A3;
+  --neg-soft:#FBEDE5; --ok-soft:#E7F3EC; --sen-soft:#E5F1F7; --obs-soft:#EFEAF7;
+  --shadow:0 1px 2px rgba(20,24,26,.05), 0 8px 24px -16px rgba(20,24,26,.22);
+  --f-display:"Spectral",Georgia,"Times New Roman",serif;
+  --f-body:"IBM Plex Sans","Segoe UI",Helvetica,Arial,sans-serif;
+  --f-mono:"IBM Plex Mono","SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0D1214; --surface:#131A1D; --surface-2:#182024; --surface-3:#202A2E;
+    --ink:#E6EDEA; --ink-2:#B3C0BC; --ink-3:#87958F; --rule:#273337; --rule-2:#1D272B;
+    --neg:#E8834E; --ok:#4FC28C; --sen:#58B4DF; --obs:#A98CDC;
+    --neg-soft:#2A1B13; --ok-soft:#12261C; --sen-soft:#10232D; --obs-soft:#1F1930;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0D1214; --surface:#131A1D; --surface-2:#182024; --surface-3:#202A2E;
+  --ink:#E6EDEA; --ink-2:#B3C0BC; --ink-3:#87958F; --rule:#273337; --rule-2:#1D272B;
+  --neg:#E8834E; --ok:#4FC28C; --sen:#58B4DF; --obs:#A98CDC;
+  --neg-soft:#2A1B13; --ok-soft:#12261C; --sen-soft:#10232D; --obs-soft:#1F1930;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:var(--f-body); font-size:15.5px; line-height:1.58;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:940px; margin:0 auto; padding-inline:20px; padding-block:0 72px}
+
+/* ---------- header ---------- */
+header{padding-block:44px 22px}
+.eyebrow{
+  font-family:var(--f-mono); font-size:11px; font-weight:500; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--ink-3); margin:0 0 14px;
+}
+h1{
+  font-family:var(--f-display); font-weight:600; font-size:clamp(34px,6.2vw,52px);
+  line-height:1.04; letter-spacing:-.02em; margin:0 0 14px; text-wrap:balance;
+}
+.deck{font-size:17px; color:var(--ink-2); margin:0; max-width:60ch}
+.deck b{color:var(--ink); font-weight:600}
+
+/* ---------- instrument strip ---------- */
+.instr{
+  margin-top:30px; border:1px solid var(--rule); border-radius:3px;
+  background:var(--surface); box-shadow:var(--shadow); overflow:hidden;
+}
+.instr-head{
+  display:flex; flex-wrap:wrap; gap:10px; align-items:baseline; justify-content:space-between;
+  padding:13px 18px; border-bottom:1px solid var(--rule); background:var(--surface-2);
+}
+.instr-head h2{
+  font-family:var(--f-mono); font-size:11px; font-weight:600; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--ink-2); margin:0;
+}
+.instr-head span{font-size:12.5px; color:var(--ink-3)}
+.nums{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--rule-2)}
+.num{background:var(--surface); padding:15px 18px 16px}
+.num .v{
+  font-family:var(--f-mono); font-weight:600; font-size:25px; letter-spacing:-.02em;
+  line-height:1.1; font-variant-numeric:tabular-nums; display:block;
+}
+.num .k{font-size:12.5px; color:var(--ink-3); margin-top:5px; line-height:1.38}
+.num .say{
+  font-family:var(--f-display); font-style:italic; font-size:13.5px; color:var(--ink-2);
+  margin-top:7px; padding-top:7px; border-top:1px dotted var(--rule);
+}
+.c-neg{color:var(--neg)} .c-ok{color:var(--ok)} .c-sen{color:var(--sen)} .c-obs{color:var(--obs)}
+
+/* ---------- geometry figure ---------- */
+.figure{margin-top:30px; border:1px solid var(--rule); border-radius:3px; background:var(--surface); padding:20px 18px 14px}
+.figure svg{display:block; width:100%; height:auto; max-width:100%}
+.figure figcaption{
+  font-size:13px; color:var(--ink-3); margin-top:12px; padding-top:12px;
+  border-top:1px solid var(--rule-2);
+}
+.figure figcaption b{color:var(--ink-2); font-weight:600}
+.figure .eq{font-family:var(--f-mono); color:var(--neg); font-weight:600}
+
+/* ---------- controls ---------- */
+.controls{
+  position:sticky; top:0; z-index:20; margin-top:34px;
+  background:color-mix(in srgb, var(--ground) 92%, transparent);
+  backdrop-filter:blur(10px);
+  border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);
+  padding-block:11px; display:flex; flex-wrap:wrap; gap:9px; align-items:center;
+}
+.ctl{
+  font-family:var(--f-body); font-size:13px; font-weight:500; color:var(--ink-2);
+  background:var(--surface); border:1px solid var(--rule); border-radius:999px;
+  padding:6px 13px; cursor:pointer; line-height:1.3;
+}
+.ctl:hover{border-color:var(--ink-3)}
+.ctl:focus-visible{outline:2px solid var(--sen); outline-offset:2px}
+.ctl[aria-pressed="true"]{background:var(--ink); color:var(--ground); border-color:var(--ink)}
+.ctl.who[aria-pressed="true"]{background:var(--who); border-color:var(--who); color:#fff}
+:root[data-theme="dark"] .ctl.who[aria-pressed="true"],
+:root:not([data-theme="light"]) .ctl.who[aria-pressed="true"]{color:#0D1214}
+.ctl .dot{
+  display:inline-block; width:7px; height:7px; border-radius:50%;
+  background:var(--who); margin-right:6px; vertical-align:middle;
+}
+.ctl[aria-pressed="true"] .dot{background:currentColor}
+.spacer{flex:1 1 auto; min-width:0}
+.progress{
+  font-family:var(--f-mono); font-size:12px; color:var(--ink-3);
+  font-variant-numeric:tabular-nums; white-space:nowrap;
+}
+
+/* ---------- how to answer ---------- */
+.block{margin-top:44px}
+h2.sec{
+  font-family:var(--f-display); font-weight:600; font-size:26px; letter-spacing:-.01em;
+  margin:0 0 6px; text-wrap:balance;
+}
+.sec-note{font-size:14.5px; color:var(--ink-3); margin:0 0 20px; max-width:62ch}
+.moves{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+.move{background:var(--surface); border:1px solid var(--rule); border-radius:3px; padding:15px 16px 16px}
+.move .n{
+  font-family:var(--f-mono); font-size:11px; font-weight:600; letter-spacing:.1em;
+  color:var(--ink-3); text-transform:uppercase;
+}
+.move .t{font-weight:600; font-size:15.5px; margin-top:3px}
+.move .e{font-family:var(--f-display); font-style:italic; color:var(--ink-2); font-size:14.5px; margin-top:9px}
+.callout{
+  margin-top:20px; border-left:3px solid var(--neg); background:var(--neg-soft);
+  padding:15px 18px; border-radius:0 3px 3px 0;
+}
+.callout p{margin:0; font-size:15px}
+.callout p + p{margin-top:9px}
+.callout b{font-weight:600}
+
+.never{margin-top:22px; display:grid; gap:8px}
+.never div{
+  display:grid; grid-template-columns:22px 1fr; gap:10px; align-items:start;
+  font-size:14.5px; background:var(--surface); border:1px solid var(--rule-2);
+  border-radius:3px; padding:10px 13px;
+}
+.never .x{color:var(--neg); font-weight:600; font-family:var(--f-mono)}
+.never em{color:var(--ink-3); font-style:normal}
+
+/* ---------- tables ---------- */
+.tbl-wrap{overflow-x:auto; margin:14px 0 2px; border:1px solid var(--rule); border-radius:3px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:380px; font-size:14px}
+th,td{padding:9px 14px; text-align:left; border-bottom:1px solid var(--rule-2)}
+thead th{
+  font-family:var(--f-mono); font-size:10.5px; font-weight:600; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink-3); background:var(--surface-2);
+  border-bottom:1px solid var(--rule); white-space:nowrap;
+}
+tbody tr:last-child td{border-bottom:none}
+td.n,th.n{text-align:right; font-family:var(--f-mono); font-variant-numeric:tabular-nums}
+tr.hi td{background:var(--ok-soft); font-weight:600}
+tr.hi td.n{color:var(--ok)}
+
+/* ---------- Q&A ---------- */
+.qsec{margin-top:48px; scroll-margin-top:64px}
+.qsec-head{display:flex; flex-wrap:wrap; align-items:baseline; gap:10px; margin-bottom:6px}
+.qsec-head .letter{
+  font-family:var(--f-mono); font-size:12px; font-weight:600; color:var(--ink-3);
+  letter-spacing:.1em;
+}
+.q{
+  border-top:1px solid var(--rule); padding-block:17px;
+}
+.q:last-child{border-bottom:1px solid var(--rule)}
+.q-head{display:flex; gap:12px; align-items:flex-start}
+.q-text{
+  font-family:var(--f-display); font-size:18px; font-weight:500; line-height:1.38;
+  margin:0; flex:1 1 auto; letter-spacing:-.005em;
+}
+.owner{
+  font-family:var(--f-mono); font-size:10px; font-weight:600; letter-spacing:.08em;
+  text-transform:uppercase; padding:3px 8px; border-radius:2px; white-space:nowrap;
+  margin-top:3px; background:var(--own-soft); color:var(--own);
+}
+.a{margin-top:11px}
+.a p{margin:0 0 9px; max-width:68ch}
+.a p:last-child{margin-bottom:0}
+.a b{font-weight:600}
+.a .lead{
+  border-left:2px solid var(--rule); padding-left:15px; color:var(--ink-2);
+}
+.a .lead b{color:var(--ink)}
+.q-foot{margin-top:11px; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.mark{
+  font-family:var(--f-mono); font-size:11px; font-weight:500; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--ink-3); background:none;
+  border:1px solid var(--rule); border-radius:999px; padding:4px 11px; cursor:pointer;
+}
+.mark:hover{border-color:var(--ok); color:var(--ok)}
+.mark:focus-visible{outline:2px solid var(--sen); outline-offset:2px}
+.q.solid .mark{background:var(--ok-soft); border-color:var(--ok); color:var(--ok)}
+.q.solid .q-text{color:var(--ink-3)}
+.reveal{
+  font-family:var(--f-mono); font-size:11.5px; font-weight:500; letter-spacing:.07em;
+  text-transform:uppercase; color:var(--sen); background:var(--sen-soft);
+  border:1px dashed var(--sen); border-radius:3px; padding:9px 14px; cursor:pointer;
+  width:100%; text-align:left; margin-top:11px;
+}
+.reveal:focus-visible{outline:2px solid var(--sen); outline-offset:2px}
+body.drill .a{display:none}
+body.drill .q.open .a{display:block}
+body.drill .q.open .reveal{display:none}
+body:not(.drill) .reveal{display:none}
+.q[hidden]{display:none}
+
+footer{
+  margin-top:56px; border-top:1px solid var(--rule); padding-top:22px;
+  font-size:13.5px; color:var(--ink-3);
+}
+footer b{color:var(--ink-2); font-weight:600}
+.closing{
+  margin-top:44px; background:var(--ink); color:var(--ground);
+  border-radius:3px; padding:26px 26px 24px;
+}
+:root[data-theme="dark"] .closing,
+:root:not([data-theme="light"]) .closing{background:var(--surface-3); color:var(--ink)}
+.closing .k{
+  font-family:var(--f-mono); font-size:10.5px; font-weight:600; letter-spacing:.13em;
+  text-transform:uppercase; opacity:.62; margin:0 0 12px;
+}
+.closing q{
+  font-family:var(--f-display); font-size:clamp(18px,3.2vw,23px); line-height:1.44;
+  display:block; quotes:"\201C" "\201D";
+}
+.closing .after{margin:14px 0 0; font-size:14px; opacity:.66}
+
+@media (max-width:720px){
+  .nums{grid-template-columns:1fr 1fr}
+  .moves{grid-template-columns:1fr}
+}
+@media (max-width:430px){
+  .nums{grid-template-columns:1fr}
+  .q-head{flex-direction:column; gap:7px}
+  .owner{margin-top:0; align-self:flex-start}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">SIH26053 · DRDO · Team Raysense</p>
+  <h1>Judge&nbsp;Drill</h1>
+  <p class="deck">Eight minutes to present, then <b>two minutes of questions — about four
+  questions, twenty-five seconds each.</b> Every figure below traces to a committed CSV.
+  If you cannot name where a number comes from, do not say it.</p>
+
+  <section class="instr" aria-labelledby="six">
+    <div class="instr-head">
+      <h2 id="six">Six numbers · know these cold</h2>
+      <span>Any of you can be asked any of them</span>
+    </div>
+    <div class="nums" id="numstrip"></div>
+  </section>
+
+  <figure class="figure">
+    <svg viewBox="-44 0 684 238" role="img" aria-label="A lidar on a 1.8 metre mast fires two adjacent beams. Both land on level ground, one before a ditch and one well beyond it, so neither beam enters the ditch. The gap between where they land grows with the square of range.">
+      <!-- ground, with the ditch cut into it -->
+      <path d="M28 138 H236 L262 172 H320 L346 138 H612" fill="none" stroke="var(--ink-3)" stroke-width="2.4"/>
+      <!-- mast -->
+      <line x1="52" y1="138" x2="52" y2="56" stroke="var(--ink-3)" stroke-width="2.4"/>
+      <rect x="38" y="38" width="28" height="18" rx="2" fill="var(--sen)"/>
+      <text x="52" y="51" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="600" fill="#FFFFFF">OS1</text>
+      <!-- the two beams: both straddle the ditch -->
+      <line x1="60" y1="56" x2="196" y2="138" stroke="var(--sen)" stroke-width="1.8"/>
+      <line x1="60" y1="56" x2="430" y2="138" stroke="var(--sen)" stroke-width="1.8"/>
+      <circle cx="196" cy="138" r="4.5" fill="var(--sen)"/>
+      <circle cx="430" cy="138" r="4.5" fill="var(--sen)"/>
+      <!-- beam pitch -->
+      <path d="M96 82 A 44 44 0 0 0 92 66" fill="none" stroke="var(--ink-3)" stroke-width="1.2"/>
+      <text x="112" y="80" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600" fill="var(--ink-2)">Δθ = 0.714°</text>
+      <!-- mast height, measured outside the drawing -->
+      <line x1="24" y1="56" x2="24" y2="138" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 3"/>
+      <line x1="19" y1="56" x2="29" y2="56" stroke="var(--ink-3)" stroke-width="1"/>
+      <line x1="19" y1="138" x2="29" y2="138" stroke="var(--ink-3)" stroke-width="1"/>
+      <text x="14" y="101" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink-3)">1.8 m</text>
+      <!-- landing gap, carried clear below the ditch -->
+      <line x1="196" y1="196" x2="430" y2="196" stroke="var(--neg)" stroke-width="1.4"/>
+      <line x1="196" y1="191" x2="196" y2="201" stroke="var(--neg)" stroke-width="1.4"/>
+      <line x1="430" y1="191" x2="430" y2="201" stroke="var(--neg)" stroke-width="1.4"/>
+      <line x1="196" y1="144" x2="196" y2="190" stroke="var(--neg)" stroke-width="1" stroke-dasharray="3 4"/>
+      <line x1="430" y1="144" x2="430" y2="190" stroke="var(--neg)" stroke-width="1" stroke-dasharray="3 4"/>
+      <text x="313" y="219" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12.5" font-weight="600" fill="var(--neg)">gap ∝ r² · Δθ / h</text>
+      <!-- ditch, labelled inside itself -->
+      <text x="291" y="162" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="11.5" font-weight="600" fill="var(--neg)">ditch</text>
+      <text x="291" y="22" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="12.5" font-weight="600" fill="var(--ink-2)">no beam lands inside it — it is stepped over, not entered</text>
+      <line x1="291" y1="30" x2="291" y2="134" stroke="var(--neg)" stroke-width="1" stroke-dasharray="4 4"/>
+    </svg>
+    <figcaption>
+      The one diagram that carries the whole argument. Two adjacent beams land a predictable
+      distance apart on level ground, and that distance grows as <span class="eq">r²·Δθ / h</span>.
+      A ditch narrower than the gap is straddled by both beams and returns nothing anomalous —
+      <b>so spending more rays cannot fix it.</b> A bump is different: it intercepts a beam as
+      soon as its height reaches <span class="eq">r·Δθ</span>. Linear, not quadratic.
+    </figcaption>
+  </figure>
+</header>
+
+<nav class="controls" aria-label="Drill controls">
+  <button class="ctl" id="drill" aria-pressed="false">Drill mode — hide answers</button>
+  <button class="ctl who" data-who="pranavi" aria-pressed="false" style="--who:var(--obs)"><span class="dot"></span>Pranavi</button>
+  <button class="ctl who" data-who="jeevika" aria-pressed="false" style="--who:var(--ok)"><span class="dot"></span>Jeevika</button>
+  <button class="ctl who" data-who="nikita" aria-pressed="false" style="--who:var(--sen)"><span class="dot"></span>Nikita</button>
+  <button class="ctl who" data-who="anuj" aria-pressed="false" style="--who:var(--neg)"><span class="dot"></span>Anuj</button>
+  <span class="spacer"></span>
+  <span class="progress" id="progress">0 / 58 marked solid</span>
+  <button class="ctl" id="reset">Reset</button>
+</nav>
+
+<section class="block">
+  <h2 class="sec">The three-move answer</h2>
+  <p class="sec-note">Judges ask short questions. Teams ramble. Three sentences, in this
+  order, every time.</p>
+  <div class="moves">
+    <div class="move">
+      <div class="n">Move 1</div><div class="t">The claim</div>
+      <div class="e">“Ninety-one percent, at five percent of the points.”</div>
+    </div>
+    <div class="move">
+      <div class="n">Move 2</div><div class="t">The evidence</div>
+      <div class="e">“Forty frames, ground truth known, committed CSV.”</div>
+    </div>
+    <div class="move">
+      <div class="n">Move 3</div><div class="t">The bound</div>
+      <div class="e">“On our testbed — we have not run real sensor data yet.”</div>
+    </div>
+  </div>
+  <div class="callout">
+    <p><b>Move 3 is not weakness. Move 3 is why they believe moves 1 and 2.</b> A team that
+    volunteers its own limit has told the judge it knows where the limit is. A team that
+    doesn't has told the judge it never looked.</p>
+    <p><b>When you don't know, say exactly this and then stop:</b> “We haven't measured that.
+    What we did measure is ⟨nearest thing⟩. To answer properly we'd need to ⟨the specific
+    experiment⟩.” Never invent a number — one fabricated figure discounts every other figure
+    you gave.</p>
+  </div>
+
+  <div class="never">
+    <div><span class="x">✕</span><span>“It should work on real data” <em>→ say:</em> “We have not run real data. Zero frames.”</span></div>
+    <div><span class="x">✕</span><span>“Our AI…” <em>→ there is no learning in this system. Say</em> <b>geometry</b>.</span></div>
+    <div><span class="x">✕</span><span>“Basically”, “kind of”, “roughly” <em>→ reads as hedging under pressure</em></span></div>
+    <div><span class="x">✕</span><span>“Good question!” <em>→ spends 1.5 of your 25 seconds</em></span></div>
+    <div><span class="x">✕</span><span>Talking over a judge <em>→ if they interrupt, stop mid-word and listen</em></span></div>
+    <div><span class="x">✕</span><span>Two of you answering one question <em>→ it reads as the first answer being wrong</em></span></div>
+  </div>
+</section>
+
+<section class="block">
+  <h2 class="sec">Who takes what</h2>
+  <p class="sec-note">One person answers. Nobody adds. If a question lands outside every lane,
+  Nikita takes anything technical and Pranavi takes anything else — decide that now, not at
+  the podium.</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Topic</th><th>Answers</th><th>Backup</th></tr></thead>
+      <tbody>
+        <tr><td>Why this PS · prior art · references · framing</td><td><b>Pranavi</b></td><td>Jeevika</td></tr>
+        <tr><td>What it does · why it's new · the demo</td><td><b>Jeevika</b></td><td>Nikita</td></tr>
+        <tr><td>Physics · the detector · feasibility · performance</td><td><b>Nikita</b></td><td>Jeevika</td></tr>
+        <tr><td>Impact · deployment · who benefits</td><td><b>Anuj</b></td><td>Pranavi</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<main id="qa"></main>
+
+<section class="closing">
+  <p class="k">If you get a closing sentence, make it this one</p>
+  <q>Your sensor sees ninety-three percent of what sticks up, and eleven percent of what you
+  can fall into. One geometric test takes that to ninety-one — at a twentieth of the points.
+  And the same geometry tells you how fast you may drive.</q>
+  <p class="after">Then stop. Thank them. Do not add.</p>
+</section>
+
+<footer>
+  <p><b>Provenance.</b> Every figure traces to a committed CSV under <code>results/</code> —
+  <code>final_sweep.csv</code>, <code>final_sweep_detections.csv</code>,
+  <code>threshold_sweep.csv</code>. The braking numbers come from <code>VehicleModel</code>:
+  0.3&nbsp;s reaction, 2.0&nbsp;m/s² deceleration. The whole result set rebuilds from an empty
+  virtualenv and reproduces bit-identically — 13 rows compared, largest difference in any
+  metric 0.00e+00.</p>
+  <p><b>Two things still open.</b> Zero frames of real sensor data have been run — RELLIS-3D
+  is the intended corroboration and is not done. The official problem-statement text has
+  never been read; everything here was built from the title and the domain.</p>
+</footer>
+</div>
+
+<script>
+const SIX = [
+  {v:"92.9 / 11.5", c:"c-neg", k:"Percent of positive vs negative obstacles a <b>full scan</b> detects — every ray, 40 times, no budget limit", say:"“Ninety-three percent of what sticks up. Eleven percent of what you fall into.”"},
+  {v:"r² vs r", c:"c-obs", k:"Ditch detectability is <b>quadratic</b> in range. Bump detectability is linear.", say:"“A bump scales with r. A ditch scales with r-squared.”"},
+  {v:"6.23 m", c:"c-neg", k:"Widest ditch a stock OS1-64 can miss entirely <b>at 30 m</b>", say:"“Six metres wide. Invisible at thirty.”"},
+  {v:"91.4 %", c:"c-ok", k:"Negative obstacles our detector finds at a <b>5% point budget</b> — the prior method gets 9.7% at the same budget", say:"“Ninety-one percent at a twentieth of the points.”"},
+  {v:"73.3 %", c:"c-neg", k:"Precision at threshold 3.0. <b>Not 100%</b> — and it is on the slide", say:"“Seventy-three percent. We say so ourselves.”"},
+  {v:"0", c:"c-sen", k:"Frames of <b>real sensor data</b> run so far", say:"“Zero. It's the next thing we do.”"}
+];
+
+const T = (head, rows, hiIdx) =>
+  `<div class="tbl-wrap"><table><thead><tr>${head.map((h,i)=>
+    `<th${i?' class="n"':''}>${h}</th>`).join('')}</tr></thead><tbody>${rows.map((r,ri)=>
+    `<tr${ri===hiIdx?' class="hi"':''}>${r.map((c,i)=>
+      `<td${i?' class="n"':''}>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+
+const SECTIONS = [
+{L:"A", t:"Premise and “so what”", items:[
+ {w:"jeevika", q:"What problem are you actually solving?", a:`<p>A lidar on a ground vehicle sees what sticks up far better than what you can fall into. On our testbed a full scan — every ray, no budget limit — finds <b>92.9%</b> of boulders and <b>11.5%</b> of trenches. Our contribution is a geometric test that takes that 11.5% to <b>91%</b> while using a twentieth of the points.</p>`},
+ {w:"jeevika", q:"Isn't this solved? Lidar obstacle detection is everywhere.", a:`<p>Positive-obstacle detection is solved. Negative-obstacle detection is not, and the reason is <b>geometry, not algorithms</b>. A boulder blocks beams. A ditch is stepped over — the beams that should have entered it land beyond it. You cannot fix that by spending more rays, because a full scan already spends everything. That is the 11.5%.</p>`},
+ {w:"anuj", q:"Why does it matter? It's just a ditch.", a:`<p>For a UGV a ditch is not damage, it is mission loss — the vehicle is immobilised in the field, often under observation.</p><p>And the failure is worse than blindness: the system is <b>confidently wrong</b>. It sees the trench rim, judges it flat, reports drivable. On our data that confident-wrong rate <b>rises with more data</b> — 1.9% at a 2% budget up to <b>6.4% at full scan</b>.</p>`},
+ {w:"pranavi", q:"Why this problem statement?", a:`<p>Because the blindness is structural, so no amount of engineering on the existing approach removes it — which means there is something real to contribute. And because it is DRDO: off-road, unmapped ground, where negative obstacles are common and a stuck vehicle is a casualty risk, not an inconvenience.</p>`}
+]},
+
+{L:"B", t:"The physics", note:"Nikita's lane. These are the questions a DRDO panel opens with.", items:[
+ {w:"nikita", q:"Derive the quadratic for me.", a:`<p>Sensor at height <i>h</i>, beam pitch Δθ. Two adjacent beams hit level ground at ranges <i>r</i> and <i>r</i>+Δ<i>r</i>. From similar triangles the ground spacing grows as <b>r²·Δθ / h</b>. A ditch narrower than that spacing has no beam land inside it — both beams straddle it.</p><p>A bump is different: a bump of height <i>h</i> intercepts a beam when <b>h ≥ r·Δθ</b>. Linear, not quadratic.</p>`},
+ {w:"nikita", q:"What sensor are those numbers for?", a:`<p>Ouster OS1-64. Δθ = 0.714°, on a 1.8 m mast. Real published geometry, not invented.</p>`},
+ {w:"nikita", q:"Give me the detectability table.", a:`<p class="lead">Quote the <b>measured</b> spacing column. The closed form understates it by about 40% at 40 m because the ground is not a perfect plane — so we use the measured one.</p>`
+  + T(["Range","Ground spacing","Smallest bump","Smallest ditch"],
+      [["10 m","0.72 m","0.12 m","0.69 m"],["20 m","3.51 m","0.25 m","2.77 m"],
+       ["30 m","9.17 m","0.37 m","6.23 m"],["40 m","16.51 m","0.50 m","11.08 m"]])},
+ {w:"nikita", q:"Where does 23 km/h come from?", a:`<p>A 1 m ditch is guaranteed straddled — invisible — beyond <b>12 m</b>. Braking model: 0.3 s reaction, 2.0 m/s² deceleration. Solving for the speed whose stopping distance equals 12 m gives <b>6.35 m/s, which is 22.9 km/h</b>.</p><p>So a stock OS1-64 on a UGV that must never enter a one-metre ditch cannot safely exceed about 23 km/h — <b>and the sensor gives no indication that this is so.</b> That number is a deliverable in itself.</p>`},
+ {w:"nikita", q:"Your braking model is optimistic. / pessimistic.", a:`<p>Possibly. 2 m/s² on loose off-road surface is a defensible mid-estimate and the reaction time is a placeholder for a real autonomy stack. The model is one dataclass with four fields — give us your platform's numbers and the speed ceiling recomputes in one line. <b>The method is the claim, not the 23.</b></p>`},
+ {w:"nikita", q:"Just raise the sensor.", a:`<p>It helps linearly and it is the right first move — <i>w</i> scales as 1/<i>h</i>. But on a 1.4 m wide UGV you cannot mount a 4 m mast, and doubling mast height only halves the minimum ditch width while range squares against you. <b>It buys you a constant, not a different curve.</b></p>`},
+ {w:"nikita", q:"Just tilt the sensor down.", a:`<p>Then you trade far-field range for near-field density and lose the ability to see what is coming. Same total angular budget — tilting moves the blindness, it does not remove it. Our approach does not change the scan pattern at all; it reasons about the gaps.</p>`}
+]},
+
+{L:"C", t:"The detector", items:[
+ {w:"nikita", q:"How does the detector work — in one sentence?", a:`<p>Two adjacent beams that both return should land a predictable distance apart on level ground. If the far one lands much further out than predicted, the surface between them dropped away.</p><p class="lead"><b>anomaly = measured gap ÷ predicted gap at that range</b></p>`},
+ {w:"nikita", q:"Why is it range-normalised?", a:`<p>Because the predicted gap already grows as r². Dividing by it makes the test range-independent — <b>one threshold works at 10 m and at 40 m</b>. An un-normalised gap test would fire constantly at long range and never at short range.</p>`},
+ {w:"nikita", q:"Where does threshold 3.0 come from? Did you tune it to look good?", a:`<p>We swept it and scored against the <b>identical terrain with the ditches removed</b> — the only honest control, because it isolates what the test does to terrain that has no ditch in it.</p>`
+  + T(["Threshold","Ditch recall","False cells","Precision"],
+      [["2.0","94.0%","3,883","45.6%"],["3.0","88.0%","436","73.3%"],
+       ["4.0","82.6%","249","82.7%"],["7.0","59.6%","0","92.2%"]], 1)
+  + `<p style="margin-top:12px"><b>3.0 is the knee.</b> Against 2.0 it costs six points of recall and removes <b>89% of the false flags</b>. Going to 4.0 costs another five points for far less gain.</p>`},
+ {w:"nikita", q:"Show me the whole budget curve, not just the 5% number.", a:
+  T(["Point budget","Prior method","Our gap test"],
+    [["2%","6.7%","74.9%"],["5%","9.7%","91.4%"],["8.6%","11.3%","96.0%"],["100%","15.2%","99.8%"]], 1)
+  + `<p style="margin-top:12px">Two things to read off it. The prior method never gets above 15% <b>even at a full scan</b> — that is the structural blindness. And our curve is already at 91% by 5%, so the last 95% of the points buys eight more points of recall. <b>That flatness is the whole argument for a budget.</b></p>`},
+ {w:"nikita", q:"73% precision means one alarm in four is false. An operator will start ignoring it.", a:`<p>That is the right worry and it is the limitation we lead with. Three things.</p><p><b>One</b> — the dominant false-positive source is crest occlusion, where the ground behind a rise genuinely <i>is</i> unobserved, so calling it a false positive is arguable. <b>Two</b> — the system reports three states, not two. A candidate is “slow down and look”, not “stop”. <b>Three</b> — if you want higher precision the curve is right there: threshold 4.0 gives 82.7% precision for five points of recall. That is a tuning decision for the platform owner, and we have made it explicit instead of hiding it.</p>`},
+ {w:"nikita", q:"What's your false positive rate on flat ground?", a:`<p><b>Zero flags on flat ground.</b> On rolling terrain the max anomaly ratio is 2.48, producing 70 flags per scan. Put a 2.4 m trench in that same rolling terrain and the max ratio goes to <b>7.28</b> with 299 flags. The signal separates from the terrain, and the threshold at 3.0 sits in that gap.</p>`},
+ {w:"nikita", q:"Why not use deep learning?", a:`<p><b>Data</b> — labelled negative obstacles barely exist. RELLIS-3D, the standard off-road set, has almost none, so we would be training on the sensor's own blind spot.</p><p><b>Verifiability</b> — DRDO has to certify this. A closed-form geometric bound can be argued in a safety case; a network's failure modes cannot.</p><p><b>It isn't needed</b> — the physics gave us 91% at 5% budget with 43 ms of NumPy. Where learning <i>would</i> help is classifying what kind of negative obstacle it is, once you know one is there. That is downstream of us.</p>`},
+ {w:"jeevika", q:"What's the three-state map and why does it matter?", a:`<p>Conventional maps are two-state: free or occupied. That silently merges “I looked and it was clear” with “I never looked” — and <b>a ditch returns nothing, exactly like an unscanned patch</b>.</p><p>We carry OBSERVED, UNKNOWN and CANDIDATE_NEGATIVE, and <b>UNKNOWN is the zero value</b>, so a fresh map starts honest rather than starting optimistic. Nothing in the system upgrades “I did not look there” into “safe to drive”, and there is a test that proves that across randomised maps.</p>`},
+ {w:"nikita", q:"How do you tell a ditch from a puddle, or absorbing material, or a sensor dropout?", a:`<p><b>We can't, and we don't claim to.</b> We report a geometric anomaly: the surface between two beams is not where the ground plane says it should be. Classifying it is downstream work and would need reflectivity or a second modality. What we have done is turn an invisible hazard into a flagged region — that is the step that was missing.</p>`}
+]},
+
+{L:"D", t:"The allocator — the honest loss", note:"The question most likely to hurt you, because the PS title says “adaptive variable resolution” and our measurement says the adaptive part is not where the win is. Do not dodge it. Own it and it becomes your strongest moment.", items:[
+ {w:"jeevika", q:"Your problem statement is about adaptive allocation. Does yours beat uniform sampling?", a:`<p><b>On whole-map recall, no — and we say so on the slide.</b> Plain uniform decimation gets 91.4% at a 5% budget; ours gets 81.4%. Coverage wins a question about the whole map.</p><p>On <b>warning distance</b> — how far away the ditch was when you first saw it, which is what a vehicle actually cares about — ours wins: <b>23.2 m against 12.3 m at a 2% budget, 1.88×.</b> That is 5.8 seconds to react instead of 3.1. It is also the only method that finds all four ditches at 2%.</p>`},
+ {w:"jeevika", q:"So which is it? Are you claiming the allocator works or not?", a:`<p>Both statements are true and they are not in tension — they answer different questions.</p><p>Whole-map recall asks <i>“did you eventually map every ditch, including one 60 m off your route?”</i> Spreading your rays wins that. Warning distance asks <i>“how early did you see the one in front of you?”</i> Concentrating them wins that. <b>We report both, because reporting only the favourable one would be dishonest.</b></p>`},
+ {w:"jeevika", q:"Then what is your actual contribution?", a:`<p><b>The detector, not the allocator.</b> We started out believing the win was smart allocation. We measured it, and it wasn't.</p><p>The win is a geometric test that recovers 91% of negative obstacles from 5% of the points — and it works with plain uniform decimation, no allocator involved. <b>We changed our claim to match the measurement.</b> The allocator earns its place at very low budgets, around 2%, and we quote it only there.</p>`},
+ {w:"nikita", q:"Where does the allocator stop helping?", a:`<p>Above about 10% budget a static forward wedge overtakes it, and at 10% that wedge already matches a full scan's 30.2 m warning distance. So the allocator's window is roughly <b>2–8%</b>. We say that before being asked.</p>`},
+ {w:"nikita", q:"Did you try other allocator designs?", a:`<p>Three, and the first two lost outright.</p><p><b>Ray-wise need-weighted top-k</b> left 3.5 beams per azimuth column where uniform left 16 — and our detector compares adjacent beams <i>within a column</i>, so thinning the column silenced the detector. That is the lesson: <b>an allocator that ignores its detector's structural requirement makes the whole system worse.</b></p><p><b>Column-wise</b> fixed that — 40× more gaps found at 2% — but covered too little scene. The shipped design is a <b>hybrid</b>: a guaranteed uniform sweep first, then a steered surplus.</p>`}
+]},
+
+{L:"E", t:"Validation — the hardest area", items:[
+ {w:"jeevika", q:"Have you tested on real sensor data?", a:`<p><b>No. Zero frames.</b> Everything we have shown is a controlled testbed where ground truth is known rather than inferred.</p><p>RELLIS-3D is the intended corroboration and it is the next thing we do — the reader is written, but <code>n_azimuth</code>, the <code>.label</code> packing and the pose frame are all unverified, so we will not claim it works until it has run.</p>`},
+ {w:"jeevika", q:"Then why should I believe any of it?", a:`<p>Because the testbed was chosen to make the result <b>harder</b> to fake, not easier. Public off-road datasets contain almost no labelled ditches — so scoring against them means scoring against the sensor's own blind spot, and you would measure your own blindness as success.</p><p>We built a scene where we know exactly where every ditch is. And the whole thing rebuilds from an empty virtualenv and reproduces bit-identically: 13 rows compared, largest difference 0.00e+00.</p>`},
+ {w:"nikita", q:"Simulation always works. Real lidar is noisy.", a:`<p>Agreed, and that is the honest risk. Two things in our favour: the effect we exploit is <b>geometric, not photometric</b> — it depends on where beams land, which range noise of a few centimetres does not change at a ratio threshold of 3.0. And our simulator uses the real OS1-64 angular geometry, so the beam spacing that produces the blindness is not invented.</p><p>But we won't pretend: until RELLIS-3D runs, it is a simulation result.</p>`},
+ {w:"nikita", q:"How many tests? What's your coverage?", a:`<p><b>103 tests</b>, ruff clean. They pin the things the project rests on — that a fired-but-empty ray survives the pipeline, that a cell inside a trench is never marked observed, that a deep trench destroys all returns. <b>When one of those tests asserted the wrong physics, we rewrote the test, not the code.</b></p>`},
+ {w:"nikita", q:"What would falsify your claim?", a:`<p>A RELLIS-3D sequence with a labelled ditch where our anomaly ratio never exceeds 3.0 at a range where the geometry says it should. That is a clean falsification, and we would report it.</p>`}
+]},
+
+{L:"F", t:"Hardware and deployment", items:[
+ {w:"anuj", q:"What hardware do you need?", a:`<p><b>None that isn't already on the vehicle.</b> This is software on data a deployed UGV already produces, running on the lidar that platform already carries. That is deliberate — it makes it retrofittable to fielded vehicles rather than a next-generation-platform proposal.</p>`},
+ {w:"nikita", q:"Will it run on embedded hardware — Jetson, a rugged box?", a:`<p><b>We have not benchmarked on embedded hardware, so we won't quote a number we haven't measured.</b></p><p>What we can say: 43 ms per frame on our development CPU, in pure Python and NumPy, against 500 ms for the method it replaces. The kernel is per-ray and embarrassingly parallel, so the obvious routes are Numba JIT or a GPU kernel. But that is an engineering estimate, not a measurement, and we will label it as one.</p>`},
+ {w:"nikita", q:"43 ms — is that real-time?", a:`<p>At 10 Hz lidar, 43 ms leaves headroom in a 100 ms budget on our development CPU. On target hardware, unmeasured. The honest statement is: <b>it is cheap relative to what it replaces, and we have not yet proven it on the platform.</b></p>`},
+ {w:"nikita", q:"Does it need a steerable lidar?", a:`<p>The detector does not — it works with plain uniform decimation of a normal spinning lidar, which is the 91%-at-5% result. The allocator benefits from steerability.</p><p>Today one <code>acquire()</code> seam exists with a replay backend behind it; steerable and fixed-pattern slot in behind the same signature. <b>Only the replay backend is built.</b></p>`},
+ {w:"nikita", q:"What's the difference between saving rays and saving compute?", a:`<p>Important, and we are careful about it. On a <b>steerable</b> sensor a saved ray is a laser pulse never fired — real power and eye-safety budget. On a normal <b>spinning</b> lidar every ray fires regardless, so the budget saves bandwidth, memory and compute, not laser energy. <b>We do not claim SWaP savings on a spinning sensor.</b></p>`},
+ {w:"anuj", q:"Is this indigenous? Any foreign dependency?", a:`<p>Pure Python 3.11 and NumPy — no proprietary libraries, no cloud service, no foreign runtime. <b>It runs air-gapped.</b> The sensor model is parameterised, so it retargets to an Indian lidar by editing four numbers.</p>`},
+ {w:"nikita", q:"What about GPS-denied or jamming environments?", a:`<p>The detector needs no GPS at all — it is a within-scan test on adjacent beams. The allocator's predict step uses ego-motion, which can come from wheel odometry or IMU. <b>Degraded odometry degrades the steering, not the detection.</b></p>`}
+]},
+
+{L:"G", t:"Novelty and prior art", items:[
+ {w:"pranavi", q:"What's actually new here? Adaptive lidar already exists.", a:`<p>It does, and we cite it — AEye's iDAR patents, NEC Labs' MEMS foveating lidar, the 2025 temporal-cues work. Negative-obstacle detection also exists — DTIC, IEEE ROBIO, RELLIS-3D.</p><p><b>The two literatures never met.</b> Every adaptive-lidar paper we found is urban driving, where ditches barely occur. Every negative-obstacle paper assumes dense uniform scanning. Our contribution is at the intersection: the corrected quadratic detectability floor, a three-state map where unknown is a real value, and a range-normalised gap test that works <i>at a fraction of a scan</i>.</p>`},
+ {w:"nikita", q:"Isn't the gap test just standard discontinuity detection?", a:`<p>Discontinuity detection is standard. Two things aren't. <b>Range normalisation</b> — dividing by the predicted gap so one threshold works across the full range, which matters precisely because the gap grows quadratically. And we run it on a <b>decimated</b> scan and show it still works — 91% at 5%. Standard methods are applied to full clouds.</p>`},
+ {w:"pranavi", q:"Name your references.", a:`<p>RELLIS-3D (ICRA 2021, off-road, Ouster OS1-64). NEC Labs MEMS foveating lidar, Pittaluga et al. Adaptive LiDAR Scanning with temporal cues, 2025. AEye iDAR / 4Sight — US 11675053, 11782136, 11860313. Larson &amp; Trivedi, DTIC ADA561293, negative obstacles. IEEE ROBIO 2024 on sparse 3D lidar and off-road ditches.</p>`},
+ {w:"pranavi", q:"Have you read the official problem statement text?", a:`<p>Not the full official text — we worked from the title and the domain. That is a gap we would close first, and if the official text asks for something we haven't covered we would rather find that out now than after nomination.</p><p class="lead">If you have obtained the official text by presentation day, <b>delete this answer and say so instead.</b></p>`}
+]},
+
+{L:"H", t:"Feasibility, scope, timeline", items:[
+ {w:"nikita", q:"What exists today versus what's a plan?", a:`<p><b>Built and measured:</b> the sensor model, the simulated off-road testbed with known ground truth, the three-state fixed-grid 2.5D map, ray accounting, the discontinuity detector, three allocators, the evaluation harness, 103 tests, an offline demo.</p><p><b>Designed but not built:</b> the quadtree map, the live steerable and fixed-pattern backends, dynamic object tracking. We keep that line visible in the repo so nobody is misled about which side of it something is on.</p>`},
+ {w:"nikita", q:"What's the biggest risk to delivery?", a:`<p>RELLIS-3D corroboration. If the anomaly ratio doesn't separate on real data the way it does on ours, the headline number changes. <b>That is why it is the next task and not the last one.</b></p>`},
+ {w:"nikita", q:"How long to a field-ready version?", a:`<p>We won't give you a date we can't defend. The ordered path is: RELLIS-3D corroboration, then an embedded benchmark, then a live-sensor backend, then integration against a real autonomy stack. The first two are weeks of work; the last two depend on platform access, which isn't ours to schedule.</p>`},
+ {w:"pranavi", q:"Who built what?", a:`<p class="lead">Answer honestly and specifically — judges ask this to find passengers. <b>Each of you names your own contribution in one sentence.</b> Do not let one person narrate the whole team.</p>`}
+]},
+
+{L:"I", t:"Impact and benefits", items:[
+ {w:"anuj", q:"Who benefits and how?", a:`<p><b>Defence UGV operators</b> — unmapped ground becomes navigable, because the vehicle now knows what it hasn't seen.</p><p><b>Field crews</b> — a ditch doesn't damage a vehicle, it ends the mission, often somewhere you can't recover it from.</p><p><b>Platform designers</b> — a quantified speed ceiling per sensor, which today nobody publishes.</p>`},
+ {w:"anuj", q:"Quantify the impact.", a:`<p>Detection of negative obstacles goes from <b>11.5% to 91.4%</b> while using 5% of the points — twenty times fewer points, nearly eight times the detection.</p><p>Warning distance at a 2% budget goes from 12.3 m to 23.2 m — <b>5.8 seconds to react instead of 3.1.</b></p><p>And the speed ceiling — 23 km/h for a 1 m ditch on a stock OS1-64 — is a number a programme manager can act on immediately, <b>before any of our software ships.</b></p>`},
+ {w:"anuj", q:"Civilian applications?", a:`<p>Agricultural autonomy (irrigation channels and furrows are negative obstacles), mining haul roads, disaster response over rubble and washouts, construction sites. All share the property that <b>the ground is unmapped and the hazards are things you fall into.</b></p>`},
+ {w:"anuj", q:"What does this cost to deploy?", a:`<p>Software on existing hardware, so the marginal cost is integration effort, not capital. No new sensor, no new mount, no new compute specified — though we haven't benchmarked embedded compute, so we won't claim it fits an existing box until we've measured it.</p>`}
+]},
+
+{L:"J", t:"Hostile and trap questions", note:"Short answers. Do not get defensive, do not argue twice.", items:[
+ {w:"jeevika", q:"This is just a simulation. You haven't built anything.", a:`<p>It is a measurement harness with known ground truth, 103 tests, and bit-identical reproducibility from an empty environment — and yes, the sensor data is synthetic. That is the stated limitation, it is on the slide, and RELLIS-3D is next. <b>What we have built is the part that was missing: a test that finds ditches a full scan misses.</b></p>`},
+ {w:"jeevika", q:"Your own slide says your allocator loses. Why are you here?", a:`<p>Because the allocator was never the contribution — we found that out by measuring, and we changed the claim instead of the number. The contribution is the detector: 11.5% to 91%. <b>A team that only reports its wins hasn't finished testing.</b></p>`},
+ {w:"jeevika", q:"You've got 73% precision and no real data. That's not a product.", a:`<p>Correct. <b>It's not a product, it's a result</b> — and the result is that the blindness is structural and measurable, and one geometric test removes most of it. The speed-ceiling number is deployable today with no software at all.</p>`},
+ {w:"nikita", q:"Isn't 5% of the points just throwing away data?", a:`<p>Yes, deliberately — and the interesting part is that it costs almost nothing. <b>91.4% at 5% against 99.8% at 100%.</b> Eight points of recall for twenty times less data. That's the trade a bandwidth- or compute-limited platform wants to know about.</p>`},
+ {w:"nikita", q:"A stereo camera solves this for a tenth of the cost.", a:`<p>Stereo has the same geometry problem plus a texture problem — it also cannot see into a gap it doesn't sample, and off-road terrain is often texture-poor. Where stereo genuinely helps is as a <b>second modality for classification</b> once we've flagged a candidate. We'd take that as complementary, not competing.</p>`},
+ {w:"pranavi", q:"(A judge finishes your answer with silence, and just looks at you.)", a:`<p><b>Stop talking.</b> The answer is finished. Silence is a test of whether you'll pad. Wait.</p>`},
+ {w:"pranavi", q:"(A judge asserts something factually wrong about your work.)", a:`<p>Correct it <b>once</b>, politely, with the number: <i>“I think there may be a mix-up — the 91% is at a 5% budget, not a full scan. Full scan is 99.8%.”</i> Then stop. <b>Do not argue twice.</b></p>`}
+]},
+
+{L:"K", t:"Team and process", items:[
+ {w:"pranavi", q:"How did you validate your own assumptions?", a:`<p>Wherever we could, against a control. The threshold was swept against the identical terrain with the ditches removed. The allocator was measured against uniform decimation and a static forward wedge — and lost on one metric. When a test asserted the wrong physics we rewrote the test.</p><p>We also <b>withdrew a claim mid-project</b>: we had said “zero false positives on rolling terrain”, found we'd measured it on a single azimuth column, and corrected it to 70 flags.</p>`},
+ {w:"pranavi", q:"What would you do differently?", a:`<p>Read the official problem statement text first, and get real data in earlier. We spent effort building three allocators before measuring whether allocation was where the win was.</p>`}
+]},
+
+{L:"L", t:"Questions you want them to ask", note:"If the floor goes quiet, one of you offers one of these — it converts dead air into your strongest material. Offer one, not three.", items:[
+ {w:"jeevika", q:"“May I show you the one frame where the conventional system says clear to drive?”", a:`<p><b>Frame 8. 11.4 m from a 3 m wide, 2.2 m deep trench.</b> Both systems at a 2% budget — 1,280 rays for the conventional one, 1,256 for ours, so <b>we use slightly fewer.</b></p><p>It says <i>clear to drive</i>. We said <b>DITCH AHEAD at 18.4 m</b>. It only warns at 8.6 m — 9.8 metres and 2.5 seconds later, inside the braking distance it needs at any real speed.</p><p>And it doesn't hold: later in the run, at frames 20 and 22, it reverts to <i>unknown ahead</i>, because it's reasoning about heights it can see instead of gaps it cannot.</p>`},
+ {w:"anuj", q:"“Would you like the number a programme manager can use tomorrow?”", a:`<p><b>23 km/h.</b> The speed ceiling for a 1 m ditch on a stock OS1-64. Nobody publishes it.</p>`}
+]}
+];
+
+/* ---------- render ---------- */
+document.getElementById('numstrip').innerHTML = SIX.map(n =>
+  `<div class="num"><span class="v ${n.c}">${n.v}</span><div class="k">${n.k}</div>
+   <div class="say">${n.say}</div></div>`).join('');
+
+const WHO = {
+  pranavi:{n:"Pranavi", c:"var(--obs)", s:"var(--obs-soft)"},
+  jeevika:{n:"Jeevika", c:"var(--ok)",  s:"var(--ok-soft)"},
+  nikita: {n:"Nikita",  c:"var(--sen)", s:"var(--sen-soft)"},
+  anuj:   {n:"Anuj",    c:"var(--neg)", s:"var(--neg-soft)"}
+};
+
+let idx = 0;
+document.getElementById('qa').innerHTML = SECTIONS.map(sec => {
+  const items = sec.items.map(it => {
+    const w = WHO[it.w], id = 'q' + (idx++);
+    return `<article class="q" id="${id}" data-who="${it.w}">
+      <div class="q-head">
+        <h3 class="q-text">${it.q}</h3>
+        <span class="owner" style="--own:${w.c};--own-soft:${w.s}">${w.n}</span>
+      </div>
+      <button class="reveal" type="button">Reveal answer</button>
+      <div class="a">${it.a}</div>
+      <div class="q-foot"><button class="mark" type="button">Mark solid</button></div>
+    </article>`;
+  }).join('');
+  return `<section class="qsec" id="sec-${sec.L}">
+    <div class="qsec-head"><span class="letter">${sec.L}</span><h2 class="sec">${sec.t}</h2></div>
+    ${sec.note ? `<p class="sec-note">${sec.note}</p>` : ''}
+    ${items}</section>`;
+}).join('');
+
+/* ---------- state ---------- */
+const TOTAL = idx;
+const store = {
+  get(){ try { return JSON.parse(localStorage.getItem('raysense-drill') || '{}'); }
+         catch(e){ return {}; } },
+  set(v){ try { localStorage.setItem('raysense-drill', JSON.stringify(v)); } catch(e){} }
+};
+let state = store.get();
+const solid = new Set(state.solid || []);
+
+function paint(){
+  document.querySelectorAll('.q').forEach(q =>
+    q.classList.toggle('solid', solid.has(q.id)));
+  document.getElementById('progress').textContent =
+    `${solid.size} / ${TOTAL} marked solid`;
+  store.set({solid:[...solid], drill:document.body.classList.contains('drill')});
+}
+
+document.getElementById('qa').addEventListener('click', e => {
+  const q = e.target.closest('.q'); if(!q) return;
+  if(e.target.closest('.mark')){
+    solid.has(q.id) ? solid.delete(q.id) : solid.add(q.id);
+    paint();
+  } else if(e.target.closest('.reveal')){
+    q.classList.add('open');
+  }
+});
+
+const drillBtn = document.getElementById('drill');
+drillBtn.addEventListener('click', () => {
+  const on = !document.body.classList.contains('drill');
+  document.body.classList.toggle('drill', on);
+  drillBtn.setAttribute('aria-pressed', String(on));
+  drillBtn.textContent = on ? 'Drill mode — on' : 'Drill mode — hide answers';
+  if(!on) document.querySelectorAll('.q.open').forEach(q => q.classList.remove('open'));
+  paint();
+});
+
+const whoBtns = [...document.querySelectorAll('.ctl.who')];
+whoBtns.forEach(b => b.addEventListener('click', () => {
+  const on = b.getAttribute('aria-pressed') !== 'true';
+  whoBtns.forEach(o => o.setAttribute('aria-pressed', String(o === b && on)));
+  const who = on ? b.dataset.who : null;
+  document.querySelectorAll('.q').forEach(q =>
+    q.hidden = !!who && q.dataset.who !== who);
+  document.querySelectorAll('.qsec').forEach(s =>
+    s.hidden = ![...s.querySelectorAll('.q')].some(q => !q.hidden));
+}));
+
+document.getElementById('reset').addEventListener('click', () => {
+  solid.clear(); paint();
+});
+
+if(state.drill) drillBtn.click();
+paint();
+</script>
