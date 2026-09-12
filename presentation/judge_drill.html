@@ -235,6 +235,25 @@ footer b{color:var(--ink-2); font-weight:600}
 }
 .closing .after{margin:14px 0 0; font-size:14px; opacity:.66}
 
+/* ---------- section index ---------- */
+.index{margin-top:30px; border:1px solid var(--rule); border-radius:3px; background:var(--surface); overflow:hidden}
+.index h2{
+  font-family:var(--f-mono); font-size:11px; font-weight:600; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--ink-2); margin:0;
+  padding:13px 18px; border-bottom:1px solid var(--rule); background:var(--surface-2);
+}
+.index ol{list-style:none; margin:0; padding:6px 8px; display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:0}
+.index a{
+  display:grid; grid-template-columns:20px 1fr auto; gap:9px; align-items:baseline;
+  text-decoration:none; color:var(--ink-2); padding:7px 10px; border-radius:2px;
+  font-size:14.5px;
+}
+.index a:hover{background:var(--surface-2); color:var(--ink)}
+.index a:focus-visible{outline:2px solid var(--sen); outline-offset:-2px}
+.index .l{font-family:var(--f-mono); font-size:11.5px; font-weight:600; color:var(--ink-3)}
+.index .c{font-family:var(--f-mono); font-size:11.5px; color:var(--ink-3); font-variant-numeric:tabular-nums}
+
 @media (max-width:720px){
   .nums{grid-template-columns:1fr 1fr}
   .moves{grid-template-columns:1fr}
@@ -245,6 +264,54 @@ footer b{color:var(--ink-2); font-weight:600}
   .owner{margin-top:0; align-self:flex-start}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+
+/* ---------- print / PDF ---------- */
+@page{ size:A4; margin:15mm 14mm 17mm; }
+@media print{
+  /* paper is always the light set, whatever theme the screen was in */
+  :root, :root[data-theme="dark"]{
+    --ground:#FFFFFF; --surface:#FFFFFF; --surface-2:#F3F6F1; --surface-3:#E9EEE6;
+    --ink:#14181A; --ink-2:#3C4948; --ink-3:#5F6D69; --rule:#C9D2C6; --rule-2:#E4E9E1;
+    --neg:#A94D1D; --ok:#1E734C; --sen:#1B6A8F; --obs:#5A3B8C;
+    --neg-soft:#FAEDE5; --ok-soft:#E7F3EC; --sen-soft:#E5F1F7; --obs-soft:#EFEAF7;
+    --shadow:none;
+  }
+  body{font-size:10.2pt; line-height:1.46; background:#fff}
+  .wrap{max-width:none; padding-inline:0; padding-block:0}
+  /* controls are a screen affordance; paper shows every answer */
+  .controls, .reveal, .q-foot, .index a .c{display:none !important}
+  body.drill .a, .q .a{display:block !important}
+  .q[hidden]{display:block !important}
+  .qsec[hidden]{display:block !important}
+  .q.solid .q-text{color:var(--ink)}
+
+  header{padding-block:0 10px}
+  h1{font-size:32pt}
+  .deck{font-size:11pt}
+  .instr, .figure, .index, .move, .callout, .never div, .closing,
+  .tbl-wrap, .q{break-inside:avoid}
+  h1, h2.sec, .qsec-head, .index h2, .instr-head{break-after:avoid}
+  .block, .qsec{margin-top:22pt}
+  .qsec{break-before:auto}
+  h2.sec{font-size:16pt}
+  .q-text{font-size:12pt}
+  .figure{padding:12px 14px 10px}
+  .figure svg{max-height:112pt}
+  .figure figcaption{font-size:9pt; margin-top:9px; padding-top:9px}
+  .num{padding:11px 14px 12px}
+  .num .v{font-size:21pt}
+  .num .k{font-size:9.4pt}
+  .num .say{font-size:9.6pt; margin-top:6px; padding-top:6px}
+  .instr{margin-top:20px}
+  .closing{background:var(--surface-2); color:var(--ink); border:1px solid var(--rule)}
+  .closing .k{opacity:1; color:var(--ink-3)}
+  .closing .after{opacity:1; color:var(--ink-3)}
+  footer{margin-top:22pt}
+  .index ol{grid-template-columns:repeat(2,1fr)}
+  .index a{padding:4px 10px}
+  table{min-width:0}
+  .tbl-wrap{overflow-x:visible}
+}
 </style>
 
 <div class="wrap">
@@ -278,7 +345,8 @@ footer b{color:var(--ink-2); font-weight:600}
       <circle cx="430" cy="138" r="4.5" fill="var(--sen)"/>
       <!-- beam pitch -->
       <path d="M96 82 A 44 44 0 0 0 92 66" fill="none" stroke="var(--ink-3)" stroke-width="1.2"/>
-      <text x="112" y="80" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600" fill="var(--ink-2)">Δθ = 0.714°</text>
+      <path d="M104 70 L124 52 H132" fill="none" stroke="var(--ink-3)" stroke-width="1"/>
+      <text x="136" y="56" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600" fill="var(--ink-2)">Δθ = 0.714°</text>
       <!-- mast height, measured outside the drawing -->
       <line x1="24" y1="56" x2="24" y2="138" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 3"/>
       <line x1="19" y1="56" x2="29" y2="56" stroke="var(--ink-3)" stroke-width="1"/>
@@ -304,6 +372,11 @@ footer b{color:var(--ink-2); font-weight:600}
       soon as its height reaches <span class="eq">r·Δθ</span>. Linear, not quadratic.
     </figcaption>
   </figure>
+
+  <nav class="index" aria-labelledby="idx">
+    <h2 id="idx">What they'll ask about</h2>
+    <ol id="indexlist"></ol>
+  </nav>
 </header>
 
 <nav class="controls" aria-label="Drill controls">
@@ -531,6 +604,10 @@ const WHO = {
   nikita: {n:"Nikita",  c:"var(--sen)", s:"var(--sen-soft)"},
   anuj:   {n:"Anuj",    c:"var(--neg)", s:"var(--neg-soft)"}
 };
+
+document.getElementById('indexlist').innerHTML = SECTIONS.map(sec =>
+  `<li><a href="#sec-${sec.L}"><span class="l">${sec.L}</span><span>${sec.t}</span>
+   <span class="c">${sec.items.length}</span></a></li>`).join('');
 
 let idx = 0;
 document.getElementById('qa').innerHTML = SECTIONS.map(sec => {
