@@ -1,50 +1,113 @@
-# Raysense — SIH 2026
+# Raysense — Adaptive Variable Resolution 2.5D Lidar Mapping
 
-Working repo for Smart India Hackathon 2026.
+**Smart India Hackathon 2026 · Problem Statement `SIH26053` · DRDO · Software**
+*Adaptive Variable Resolution 2.5D Lidar Mapping for Dynamic Environment Perception*
 
-- [`docs/SIH_2026_RESEARCH.md`](docs/SIH_2026_RESEARCH.md) — deadlines, rules, scoring
-  rubric, problem-statement landscape, failure modes, and what winning entries look like.
+---
 
-**Hard deadline: idea submission on the SIH portal closes 30 September 2026.**
-The college internal hackathon deadline is earlier and is set by your SPOC.
+## The finding
 
-## Documents
+A lidar on a ground vehicle sees **what sticks up** far better than **what you can fall
+into.** Measured over 40 full scans — every ray, no budget limit:
 
-| File | What it is |
+| | Detected |
+|---|---:|
+| Positive obstacles (boulders) | **92.9 %** |
+| Negative obstacles (trenches, craters) | **11.5 %** |
+
+Spending more rays cannot fix it, because a full scan already spends everything. A narrow
+trench is not *entered* by beams — it is **stepped over.**
+
+The reason is geometric. A bump of height *h* is detectable when `h ≥ r·Δθ` — **linear** in
+range. A ditch of width *w* needs `w ≥ r²·Δθ / h_sensor` — **quadratic.** On a stock Ouster
+OS1-64 (Δθ = 0.714°, 1.8 m mast) that means **a 6.2 m wide ditch is invisible at 30 m**, and
+a vehicle that must never enter a 1 m ditch **cannot safely exceed ≈ 23 km/h** — a limit the
+sensor gives no indication of.
+
+## What we contribute
+
+The same quadratic, normalised, becomes the detector:
+
+```
+anomaly = measured gap ÷ predicted gap at that range
+```
+
+Negative obstacles found, at threshold 3.0, using **plain uniform decimation** — no
+allocator involved:
+
+| Point budget | Prior method | **Discontinuity test** |
+|---:|---:|---:|
+| 2 % | 6.7 % | **74.9 %** |
+| 5 % | 9.7 % | **91.4 %** |
+| 8.6 % | 11.3 % | **96.0 %** |
+| 100 % | 15.2 % | **99.8 %** |
+
+> **91 % of negative obstacles at 5 % of the point budget.** A full scan with no absence
+> reasoning finds 12 %. Twenty times fewer points, nearly eight times the detection.
+> It costs **43 ms per frame** against 500 ms for the method it replaces.
+
+The map carries **three** states — `OBSERVED`, `UNKNOWN`, `CANDIDATE_NEGATIVE` — and
+`UNKNOWN` is the zero value, so a fresh map starts out admitting it knows nothing. Nothing
+in the system upgrades *"I did not look there"* into *"safe to drive"*, and a test pins that
+across randomised maps.
+
+## What does *not* work, stated up front
+
+1. **Precision is 73.3 %, not 100 %.** Crest occlusions produce genuine range gaps.
+2. **Smart allocation does not beat plain decimation on whole-map recall** — 81.4 % against
+   91.4 % at a 5 % budget. It wins only on *warning distance*, and only below ~8 %: at a 2 %
+   budget it gives **23.2 m of warning against 12.3 m**, 1.88×. We quote it only there.
+3. **Nothing has touched real sensor data.** Zero frames. RELLIS-3D corroboration is the
+   next task; `n_azimuth`, the `.label` packing and the pose frame are all unverified.
+4. **No embedded benchmark.** 43 ms is a development-CPU figure. We do not quote a Jetson
+   number we have not measured.
+
+Every number above comes from a committed CSV in [`results/`](results/). None is typed by
+hand. See **[`docs/RESULTS.md`](docs/RESULTS.md)** for the full record.
+
+## Run it
+
+```bash
+python -m venv .venv && . .venv/bin/activate      # Windows: .venv\Scripts\activate
+pip install -e ".[dev]"
+pytest -q                                          # 103 tests
+python scripts/render_scan.py                      # one scan, three panels
+python scripts/make_demo.py --fraction 0.02 --frames 40 --every 2
+```
+
+Then open [`results/demo.html`](results/demo.html) — conventional vs. Raysense, side by
+side, both at a 2 % budget.
+
+**Reproducibility.** `bash scripts/verify_reproducible.sh` builds a clean virtualenv from
+`pyproject.toml` alone, rebuilds the ground truth and the sweep from nothing, and diffs
+against the committed CSVs. Last run: *13 rows compared, largest difference in any metric
+`0.00e+00` — bit-identical.*
+
+## Layout
+
+| Path | What |
 |---|---|
-| **[`docs/RESULTS.md`](docs/RESULTS.md)** | **Measured results — start here. Supersedes the planning documents on the technical claim.** |
-| [`docs/SIH_2026_RESEARCH.md`](docs/SIH_2026_RESEARCH.md) | SIH 2026 deadlines, rules, scoring rubrics, problem-statement landscape, failure modes |
-| [`docs/SIH26053_CRITIQUE.md`](docs/SIH26053_CRITIQUE.md) | Review of the original approach — prior art, the steerable-hardware assumption, six holes |
-| [`docs/RAYSENSE_BATTLE_PLAN.md`](docs/RAYSENSE_BATTLE_PLAN.md) | The reworked plan: architecture, experiment design, deck outline, schedule, roles, risks |
-| [`docs/M0_FINDINGS.md`](docs/M0_FINDINGS.md) · [`M1_M2`](docs/M1_M2_FINDINGS.md) · [`M5_M6`](docs/M5_M6_FINDINGS.md) · [`M7_M8`](docs/M7_M8_FINDINGS.md) | Per-milestone findings, in build order |
-| [`deck/Raysense_SIH26053_Idea.pdf`](deck/Raysense_SIH26053_Idea.pdf) | Six-slide idea submission |
-| [`results/demo.html`](results/demo.html) | Offline side-by-side demo player |
-| [`docs/raysense-results.html`](docs/raysense-results.html) | Shareable web version of the results |
+| [`src/raysense/`](src/raysense/) | The system — sensor model, terrain sim, 2.5D map, ray accounting, detector, allocators, evaluation |
+| [`tests/`](tests/) | 103 tests. They pin the physics, not just the plumbing |
+| [`scripts/`](scripts/) | Ground truth, sweeps, threshold sweep, demo, reproducibility check |
+| [`results/`](results/) | Every committed CSV and figure — the evidence base |
+| [`docs/RESULTS.md`](docs/RESULTS.md) | **Measured results. Start here.** |
+| [`docs/`](docs/) | Build plan, per-milestone findings, testing guide, runbook |
+| [`presentation/`](presentation/) | Deck, speaker scripts, judge Q&A, runnable prototype ZIP |
 
-## Testing
+Planning documents in `docs/` that predate the measurements are marked **SUPERSEDED** —
+the original efficiency-through-allocation claim did not survive testing, and we changed
+the claim rather than the number.
 
-See **[`docs/TESTING.md`](docs/TESTING.md)** — setup, a 20-second smoke test, and five ways
-to try to break the claims.
+## Team
 
-## Reproducing
+**Team Raysense** — Pranavi · Jeevika · Nikita · Anuj
+<!-- add remaining members and the portal Team ID before submitting -->
 
-```bash
-bash scripts/verify_reproducible.sh
-```
+## Acknowledgements
 
-Builds a clean virtualenv from `pyproject.toml`, reruns everything, and fails if any number
-differs from the committed CSVs.
-
-**Freeze point:** commit `fe046ad` — *"Record that the freeze reproduces bit-identically"*.
-Verified from clean: 13 rows compared, largest difference in any metric `0.00e+00`.
-
-The annotated tag `v1.0-frozen` exists locally but could not be pushed from the environment
-this was built in — that environment accepts branch pushes but rejects tag refs. To restore
-it from any clone:
-
-```bash
-git tag -a v1.0-frozen fe046ad -m "Raysense v1.0 — frozen for SIH26053 idea submission"
-git push origin v1.0-frozen
-```
-
-**Problem statement:** SIH26053 · DRDO · Software · Smart Automation
+Built with [Claude Code](https://claude.ai/code). Prior art we build on is cited in full on
+the deck and in [`docs/SIH26053_CRITIQUE.md`](docs/SIH26053_CRITIQUE.md) — RELLIS-3D
+(ICRA 2021), NEC Labs MEMS foveating lidar, Adaptive LiDAR Scanning with temporal cues
+(2025), AEye iDAR (US 11675053 / 11782136 / 11860313), Larson & Trivedi (DTIC ADA561293),
+IEEE ROBIO 2024.
