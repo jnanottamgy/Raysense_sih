@@ -15,7 +15,7 @@ function chrome(s, title, n){
     fill:{color:'FFFFFF'}, line:{color:'7A6FA8', width:1.2} });
   s.addText('Raysense', { x:0.26, y:0.14, w:1.26, h:0.58, align:'center', valign:'middle',
     fontSize:12.5, fontFace:SANS, color:INK, isTextBox:true, margin:0 });
-  s.addImage({ path:D+'sih_logo.png', x:11.45, y:0.10, w:1.62, h:0.64 });
+  s.addImage({ path:D+'sih_logo.png', x:11.42, y:0.10, w:1.66, h:1.66/2.0895 });
   if(title) s.addText(title, { x:1.7, y:0.13, w:9.6, h:0.62, align:'center',
     fontSize:29, bold:true, fontFace:SERIF, color:INK, isTextBox:true, margin:0 });
   s.addShape(p.ShapeType.rect, { x:0, y:H-0.42, w:W, h:0.42, fill:{color:BLUE} });
@@ -31,25 +31,45 @@ function chip(s,x,y,w,h,fill,line){ s.addShape(p.ShapeType.roundRect,{x,y,w,h,re
   fill:{color:fill||TINT},line:{color:line||RULE,width:1}}); }
 
 /* ============ 1 · TITLE ============ */
-let s = p.addSlide(); chrome(s,null,1);
-s.addText('SMART INDIA HACKATHON 2026', { x:1.6, y:1.18, w:10.1, h:0.42, align:'center',
-  fontSize:19, bold:true, fontFace:SERIF, color:INK3, charSpacing:2, isTextBox:true });
-s.addText('Adaptive Variable Resolution 2.5D Lidar Mapping', { x:0.9, y:1.72, w:11.5, h:0.72,
-  align:'center', fontSize:33, bold:true, fontFace:SERIF, color:BLUE, isTextBox:true });
-s.addText('for Dynamic Environment Perception', { x:0.9, y:2.40, w:11.5, h:0.52,
-  align:'center', fontSize:24, fontFace:SERIF, color:INK2, isTextBox:true });
-s.addImage({ path:D+'fig_threestate.png', x:2.57, y:3.10, w:8.2, h:8.2/3.711 });
-const meta=[['PS ID','SIH26053',SEN],['ORGANISATION','DRDO',NEG],
-            ['THEME','Smart Vehicles',OBS],['CATEGORY','Software',OK]];
-meta.forEach((m,i)=>{ const x=0.95+i*3.0;
-  chip(s,x,5.60,2.8,0.98);
-  s.addShape(p.ShapeType.ellipse,{x:x+0.18,y:5.95,w:0.22,h:0.22,fill:{color:m[2]}});
-  s.addText(m[0],{x:x+0.5,y:5.74,w:2.2,h:0.26,fontSize:9.5,bold:true,fontFace:SANS,
+/* Official SIH 2026 idea-submission title page: carries all six required
+   fields with the template's own labels. Like the template's slide 1 it
+   takes no footer bar, no slide number and no team oval — those start on
+   slide 2. */
+let s = p.addSlide();
+s.background = { color:'FFFFFF' };
+s.addShape(p.ShapeType.ellipse, { x:0.44, y:0.36, w:1.46, h:0.68,
+  fill:{color:'FFFFFF'}, line:{color:'7A6FA8', width:1.3} });
+s.addText('Raysense', { x:0.44, y:0.36, w:1.46, h:0.68, align:'center', valign:'middle',
+  fontSize:13.5, fontFace:SANS, color:INK, isTextBox:true, margin:0 });
+s.addImage({ path:D+'sih_logo.png', x:10.30, y:0.30, w:2.60, h:2.60/2.0895 });
+
+s.addText('SMART INDIA HACKATHON 2026', { x:0.90, y:1.88, w:11.53, h:0.40, align:'center',
+  fontSize:18, bold:true, fontFace:SERIF, color:INK3, charSpacing:2.6, isTextBox:true });
+s.addText('PROBLEM STATEMENT TITLE', { x:0.90, y:2.32, w:11.53, h:0.28, align:'center',
+  fontSize:10.5, bold:true, fontFace:SANS, color:BLUE, charSpacing:1.8, isTextBox:true });
+/* one box, two explicit lines — so a wrap can never shunt the second line
+   into the chips below; the box has 0.5in of slack under the text it holds */
+s.addText([{ text:'Adaptive Variable Resolution 2.5D Lidar Mapping',
+             options:{ fontSize:31, bold:true, color:INK, breakLine:true } },
+           { text:'for Dynamic Environment Perception',
+             options:{ fontSize:23, color:INK2 } }],
+  { x:0.90, y:2.62, w:11.53, h:1.40, align:'center', fontFace:SERIF, isTextBox:true });
+
+/* the six fields the template asks for, in its own order */
+const meta=[['PROBLEM STATEMENT ID','SIH26053',SEN,INK],
+            ['ORGANISATION','DRDO',NEG,INK],
+            ['THEME','Smart Automation',OBS,INK],
+            ['PS CATEGORY','Software',OK,INK],
+            ['TEAM ID','ADD FROM PORTAL',NEG,NEG],
+            ['TEAM NAME','Raysense',BLUE,INK]];
+meta.forEach((m,i)=>{
+  const x = 0.772 + (i%3)*4.03, y = 4.46 + Math.floor(i/3)*1.16;
+  chip(s,x,y,3.73,1.02);
+  s.addShape(p.ShapeType.ellipse,{x:x+0.22,y:y+0.40,w:0.22,h:0.22,fill:{color:m[2]}});
+  s.addText(m[0],{x:x+0.56,y:y+0.17,w:2.95,h:0.26,fontSize:9,bold:true,fontFace:SANS,
     color:INK3,charSpacing:1,isTextBox:true,margin:0});
-  s.addText(m[1],{x:x+0.5,y:6.00,w:2.2,h:0.34,fontSize:14.5,bold:true,fontFace:SANS,
-    color:INK,isTextBox:true,margin:0}); });
-s.addText('Team Raysense', { x:0.9, y:6.66, w:11.5, h:0.36, align:'center', fontSize:15,
-  bold:true, fontFace:SANS, color:INK3, charSpacing:1.5, isTextBox:true });
+  s.addText(m[1],{x:x+0.56,y:y+0.43,w:2.95,h:0.34,fontSize:14.5,bold:true,fontFace:SANS,
+    color:m[3],isTextBox:true,margin:0}); });
 s.addNotes('PRANAVI — 55s. PS ID + DRDO. Then 93% / 11%. PAUSE 3s after "eleven percent".');
 
 /* ============ 2 · THE PROBLEM & THE IDEA ============ */
