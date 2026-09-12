@@ -96,3 +96,65 @@ def test_too_few_returns_is_not_an_error():
     g = RayGrid(np.zeros(1), np.array([-0.2]), np.zeros(3), 50.0, np.zeros(1, dtype=int))
     near, _, _ = find_discontinuities(ScanResult(np.zeros((1, 3)), np.array([0]), g), SENSOR)
     assert len(near) == 0
+
+
+def _ramp(grade: float, trench: bool = True) -> Terrain:
+    """Ground rising uniformly with x, optionally with a trench cut into it."""
+    n, res, org = 800, 0.3, (-120.0, -120.0)
+    gx = org[0] + np.arange(n) * res
+    t = Terrain(np.tile(grade * (gx - org[0]), (n, 1)), res, org)
+    if trench:
+        t.add_trench((10.0, 0.0), length=16.0, width=2.4, depth=1.8, angle_deg=90.0)
+    return t
+
+
+def _gaps_over_the_trench(near, far) -> int:
+    """Only the gaps whose span actually straddles the trench at x = 10."""
+    if not len(near):
+        return 0
+    return int(((near[:, 0] < 10.0) & (far[:, 0] > 10.0)
+                & (np.abs(near[:, 1]) <= 8.0)).sum())
+
+
+def test_crest_guard_keeps_ditches_on_level_and_mild_ground():
+    """The guard must not cost recall where ditches actually get driven into.
+
+    `scripts/crest_study.py` measured the approach slope of every flagged gap
+    at a 5% budget over 40 frames: real-ditch gaps top out at 0.039, crest
+    occlusions on the ditch-free control start at 0.069. CREST_RISE sits above
+    the ditch population, so a ditch on level or mildly rising ground survives.
+    """
+    for grade in (0.0, 0.05, 0.08, 0.10):
+        scan = scan_over(_ramp(grade))
+        guarded = _gaps_over_the_trench(*find_discontinuities(scan, SENSOR)[:2])
+        assert guarded > 0, f"crest guard lost the trench on a {grade:.0%} grade"
+
+
+def test_crest_guard_costs_a_ditch_on_a_steep_uphill_approach():
+    """The known failure, pinned so it cannot regress silently.
+
+    Between roughly 11% and 14% of uphill grade the detector can still see the
+    trench but the guard suppresses it: the approach slope crosses CREST_RISE
+    before the geometry stops working. Above ~15% the trench is invisible to
+    the detector with or without the guard, because the near rim occludes it.
+    """
+    scan = scan_over(_ramp(0.12))
+    unguarded = _gaps_over_the_trench(
+        *find_discontinuities(scan, SENSOR, crest_rise=0.0)[:2])
+    guarded = _gaps_over_the_trench(*find_discontinuities(scan, SENSOR)[:2])
+    assert unguarded > 0, "detector should still see the trench at a 12% grade"
+    assert guarded == 0, "documented limitation: the guard drops it at 12%"
+
+    # ... and by 15% it is gone either way, so the guard is not what loses it
+    steep = scan_over(_ramp(0.15))
+    assert _gaps_over_the_trench(
+        *find_discontinuities(steep, SENSOR, crest_rise=0.0)[:2]) == 0
+
+
+def test_crest_guard_can_be_switched_off():
+    """Every guarded number must be reproducible against its unguarded twin."""
+    t = make_terrain(size_m=240, resolution=0.3, roughness=3.0, seed=7)
+    t.add_trench((10.0, 0.0), length=16.0, width=2.4, depth=1.8, angle_deg=90.0)
+    scan = scan_over(t)
+    assert len(find_discontinuities(scan, SENSOR, crest_rise=0.0)[0]) >= \
+        len(find_discontinuities(scan, SENSOR)[0])

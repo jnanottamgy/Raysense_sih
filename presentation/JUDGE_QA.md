@@ -68,7 +68,7 @@ Any of you can be asked any of these. Drill until they come out without thinking
 | 2 | Ditch detectability is **quadratic** in range, bump is **linear** | *"A bump scales with r. A ditch scales with r-squared."* |
 | 3 | At 30 m an OS1-64 can miss a **6.2 m** wide ditch | *"Six metres wide. Invisible at thirty."* |
 | 4 | Our detector: **91.4%** at a **5%** budget (vs **9.7%** for the prior method) | *"Ninety-one percent at a twentieth of the points."* |
-| 5 | Precision at threshold 3.0 is **73.3%**, not 100% | *"Seventy-three percent. We say so on the slide."* |
+| 5 | Precision at threshold 3.0 is **79.4%**, not 100% — and only **5** cells now flag on clean terrain, down from 436 | *"Seventy-nine percent — and five false cells, not four hundred."* |
 | 6 | **Zero** frames of real sensor data run so far | *"Zero. It's the next thing we do."* |
 
 ---
@@ -171,7 +171,7 @@ Any of you can be asked any of these. Drill until they come out without thinking
 | Threshold | Ditch recall | False cells | Precision |
 |---:|---:|---:|---:|
 | 2.0 | 94.0% | 3,883 | 45.6% |
-| **3.0** | **88.0%** | **436** | **73.3%** |
+| **3.0** | **88.0%** | **436 → 5** | **73.3% → 79.4%** |
 | 4.0 | 82.6% | 249 | 82.7% |
 | 7.0 | 59.6% | 0 | 92.2% |
 
@@ -192,14 +192,27 @@ Any of you can be asked any of these. Drill until they come out without thinking
 > the points buys eight more points of recall. That flatness is the whole argument for a
 > budget.
 
-**Q. 73% precision means one alarm in four is false. An operator will start ignoring it.**
-> That's the right worry and it's the limitation we lead with. Three things. One — the
-> dominant false-positive source is **crest occlusion**, where the ground behind a rise
-> genuinely *is* unobserved, so calling it a false positive is arguable. Two — the system
-> reports three states, not two: OBSERVED, UNKNOWN, CANDIDATE_NEGATIVE. A candidate is
-> "slow down and look", not "stop". Three — if you want higher precision the curve is right
-> there: threshold 4.0 gives 82.7% precision for five points of recall. That's a tuning
-> decision for the platform owner, and we've made it explicit instead of hiding it.
+**Q. 79% precision means one alarm in five is false. An operator will start ignoring it.**
+> It used to be one in four. We found out what those false alarms actually were and removed
+> most of them. **A crest occlusion makes the same signature as a ditch** — the ground rises,
+> the far beam clears the rise, and the shadow behind it is an unexplained gap.
+>
+> There is one physical asymmetry: **a crest is reached uphill, a ditch is not.** We measured
+> the approach slope of every flagged gap. Real-ditch gaps top out at **0.039**; crest gaps on
+> the ditch-free control start at **0.069**. The populations do not overlap. Rejecting gaps
+> approached on a grade steeper than 0.10 takes false cells from **436 to 5 — a 98.9%
+> reduction — with ditch recall unchanged at 88.0%** and the headline 91.4% untouched.
+>
+> What's left is mostly the flagged span overrunning the true ditch rectangle. That is
+> localisation slop, not a phantom hazard. And a candidate is "slow down and look", not "stop".
+
+**Q. What does the crest guard cost you?**
+> A ditch approached on a steep uphill. We measured the boundary rather than guessing it: up
+> to a **10% grade** the trench is still found; at **12%** the detector can see it but the
+> guard suppresses it; from about **15%** the trench is invisible either way, because the near
+> rim occludes it. So the harm window is roughly **11–14% of uphill grade**. It is pinned by a
+> test so it cannot regress silently, and `crest_rise=0` turns the guard off for any platform
+> that would rather take the false alarms.
 
 **Q. What's your false positive rate on flat ground?**
 > Zero flags on flat ground. On rolling terrain the max ratio is 2.48 and it produces 70
@@ -240,10 +253,10 @@ Any of you can be asked any of these. Drill until they come out without thinking
 
 **Q. Your problem statement is about adaptive allocation. Does yours beat uniform sampling?**
 > On whole-map recall, no — and we say so on the slide. Plain uniform decimation gets 91.4%
-> at a 5% budget; ours gets 81.4%. Coverage wins a question about *the whole map*.
+> at a 5% budget; ours gets 79.3%. Coverage wins a question about *the whole map*.
 > On **warning distance** — how far away was the ditch when you first saw it, which is what a
-> vehicle actually cares about — ours wins: **23.2 m against 12.3 m at a 2% budget, 1.88×.**
-> That's 5.8 seconds to react instead of 3.1. It's also the only method that finds all four
+> vehicle actually cares about — ours wins: **24.5 m against 12.3 m at a 2% budget, 1.99×.**
+> That's 6.1 seconds to react instead of 3.1. It's also the only method that finds all four
 > ditches at 2%.
 
 **Q. So which is it? Are you claiming the allocator works or not?**
@@ -262,7 +275,7 @@ Any of you can be asked any of these. Drill until they come out without thinking
 
 **Q. Where does the allocator stop helping?**
 > Above about 10% budget a static forward wedge overtakes it, and at 10% that wedge already
-> matches a full scan's 30.2 m warning distance. So the allocator's window is roughly 2–8%.
+> matches a full scan's 28.2 m warning distance. So the allocator's window is roughly 2–8%.
 > We say that before being asked.
 
 **Q. Did you try other allocator designs?**
@@ -439,7 +452,7 @@ Any of you can be asked any of these. Drill until they come out without thinking
 **Q. Quantify the impact.**
 > Detection of negative obstacles goes from 11.5% to 91.4% while using 5% of the points —
 > twenty times fewer points, and nearly eight times the detection. Warning distance at a 2%
-> budget goes from 12.3 m to 23.2 m, which is 5.8 seconds to react instead of 3.1. And the
+> budget goes from 12.3 m to 24.5 m, which is 6.1 seconds to react instead of 3.1. And the
 > speed ceiling — 23 km/h for a 1 m ditch on a stock OS1-64 — is a number a programme manager
 > can act on immediately, before any of our software ships.
 
@@ -468,7 +481,7 @@ Any of you can be asked any of these. Drill until they come out without thinking
 > changed the claim instead of the number. The contribution is the detector: 11.5% to 91%.
 > A team that only reports its wins hasn't finished testing.
 
-**Q. You've got 73% precision and no real data. That's not a product.**
+**Q. You've got 79% precision and no real data. That's not a product.**
 > Correct. It's not a product, it's a result — and the result is that the blindness is
 > structural and measurable, and one geometric test removes most of it. The speed-ceiling
 > number is deployable today with no software at all.

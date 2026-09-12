@@ -25,6 +25,7 @@ import pandas as pd
 from raysense.allocate import BASELINES, WorldState
 from raysense.mapping import FixedGridMap
 from raysense.raycast import find_discontinuities
+from raysense.raycast.discontinuity import CREST_RISE
 from raysense.sensor import ReplayBackend, SensorModel
 from raysense.sim import SCENES, drive, make_terrain
 from raysense.types import CellState
@@ -45,7 +46,8 @@ def mark_span(emap, near, far, frame):
         emap.state[r[inside], c[inside]] |= int(CellState.CANDIDATE_NEGATIVE)
 
 
-def run(scene, sensor, alloc_name, fraction, thresholds, strip_ditches: bool):
+def run(scene, sensor, alloc_name, fraction, thresholds, strip_ditches: bool,
+        crest_rise: float = CREST_RISE):
     """One traverse; every threshold scored from the same gaps."""
     terrain = scene.terrain
     if strip_ditches:
@@ -63,7 +65,8 @@ def run(scene, sensor, alloc_name, fraction, thresholds, strip_ditches: bool):
         backend = ReplayBackend(full)
         world = WorldState(sensor=sensor, frame=frame, origin=origin)
         scan = backend.acquire(alloc.allocate(world, budget))
-        near, far, ratio = find_discontinuities(scan, sensor, threshold=0.0)
+        near, far, ratio = find_discontinuities(
+            scan, sensor, threshold=0.0, crest_rise=crest_rise)
         for t in thresholds:
             keep = ratio > t
             mark_span(maps[t], near[keep], far[keep], frame)
@@ -79,16 +82,21 @@ def main() -> int:
     ap.add_argument("--frames", type=int, default=40)
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--csv", type=Path, default=Path("results/threshold_sweep.csv"))
+    ap.add_argument("--no-crest-guard", action="store_true",
+                    help="disable the crest-occlusion guard, to measure what it buys")
     ap.add_argument("--out", type=Path, default=Path("results/threshold_sweep.png"))
     args = ap.parse_args()
 
     sensor = SensorModel.from_yaml(args.sensor)
     scene = SCENES[args.scene](seed=args.seed, n_frames=args.frames)
+    crest = 0.0 if args.no_crest_guard else CREST_RISE
+    print(f"crest guard: {'off' if crest == 0 else f'reject approach slope > {crest}'}")
 
     print("traverse 1/2 — terrain with ditches")
-    with_ditches = run(scene, sensor, args.allocator, args.fraction, THRESHOLDS, False)
+    with_ditches = run(scene, sensor, args.allocator, args.fraction, THRESHOLDS,
+                       False, crest)
     print("traverse 2/2 — identical terrain, ditches removed (the control)")
-    control = run(scene, sensor, args.allocator, args.fraction, THRESHOLDS, True)
+    control = run(scene, sensor, args.allocator, args.fraction, THRESHOLDS, True, crest)
 
     probe = FixedGridMap(scene.map_config)
     X, Y = probe.cell_centres()

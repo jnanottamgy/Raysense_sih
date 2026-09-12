@@ -44,21 +44,45 @@ from raysense.types import CellState, ScanResult
 DEFAULT_THRESHOLD = 3.0
 MIN_GAP = 0.5      # m — ignore gaps too small to hide anything a vehicle cares about
 
+# A crest occlusion produces the same range gap as a ditch: the ground rises,
+# the far beam clears the rise, and the shadow behind it reads as an
+# unexplained gap. The asymmetry is the approach — a crest is reached *uphill*,
+# a ditch is not. `scripts/crest_study.py` measured both populations at a 5%
+# budget over 40 frames: the approach slope of a real-ditch gap tops out at
+# 0.039, while crest gaps on the ditch-free control start at 0.069. Nothing
+# overlaps. The cut sits above the ditch population, not between the two, so
+# the bias is toward keeping a ditch rather than dropping one — a missed hole
+# is worse than a false alarm.
+CREST_RISE = 0.10  # reject a gap approached on a grade steeper than this
+
 
 def find_discontinuities(
     scan: ScanResult,
     sensor: SensorModel,
     threshold: float = DEFAULT_THRESHOLD,
     min_gap: float = MIN_GAP,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    crest_rise: float = CREST_RISE,
+    details: bool = False,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray] | tuple[
+        np.ndarray, np.ndarray, np.ndarray, dict[str, np.ndarray]]:
     """Locate range gaps that geometry cannot explain.
 
     Returns `(near, far, ratio)` — the two return points bracketing each
     suspicious gap, and how many times larger it is than predicted.
+
+    With `details=True` a fourth element carries the per-gap geometry the
+    crest guard is built on, so the guard and the study that justified it read
+    the same numbers from the same code path.
     """
+    def _empty(d: bool):
+        e = np.zeros((0, 3))
+        if not d:
+            return e, e, np.zeros(0)
+        keys = ("measured", "predicted", "dz", "rise_before", "horiz_near", "have_prev")
+        return e, e, np.zeros(0), {k: np.zeros(0) for k in keys}
+
     if scan.n_returns < 2:
-        empty = np.zeros((0, 3))
-        return empty, empty, np.zeros(0)
+        return _empty(details)
 
     o = np.asarray(scan.fired.origin, dtype=float)
     native = scan.fired.beam_index
@@ -73,8 +97,7 @@ def find_discontinuities(
     # only downward beams describe ground
     down = el < -1e-3
     if down.sum() < 2:
-        empty = np.zeros((0, 3))
-        return empty, empty, np.zeros(0)
+        return _empty(details)
     col, el, pts = col[down], el[down], pts[down]
 
     horiz = np.hypot(pts[:, 0] - o[0], pts[:, 1] - o[1])
@@ -85,11 +108,21 @@ def find_discontinuities(
 
     same = col[1:] == col[:-1]
     if not same.any():
-        empty = np.zeros((0, 3))
-        return empty, empty, np.zeros(0)
+        return _empty(details)
 
     i = np.flatnonzero(same)          # near return
     j = i + 1                         # far return
+
+    # Ground slope on the approach to the near return, taken from the previous
+    # return in the same column. Where there is no previous return we have no
+    # evidence, so the crest guard must not fire.
+    prev_ok = i > 0
+    k = np.where(prev_ok, i - 1, 0)
+    run = horiz[i] - horiz[k]
+    have_prev = prev_ok & (col[k] == col[i]) & (run > 1e-6)
+    rise = np.zeros(i.shape, dtype=float)
+    rise[have_prev] = ((pts[i[have_prev], 2] - pts[k[have_prev], 2])
+                       / run[have_prev])
 
     # where would the far beam land on a level plane through the near return?
     drop = o[2] - pts[i, 2]
@@ -104,7 +137,20 @@ def find_discontinuities(
     ratio[ok] = measured[ok] / predicted[ok]
 
     flagged = ok & (ratio > threshold)
-    return pts[i[flagged]], pts[j[flagged]], ratio[flagged]
+    if crest_rise > 0:
+        flagged &= ~(have_prev & (rise > crest_rise))
+    if not details:
+        return pts[i[flagged]], pts[j[flagged]], ratio[flagged]
+
+    d = {
+        "measured": measured[flagged],
+        "predicted": predicted[flagged],
+        "dz": (pts[j, 2] - pts[i, 2])[flagged],
+        "rise_before": rise[flagged],
+        "horiz_near": horiz[i][flagged],
+        "have_prev": have_prev[flagged].astype(float),
+    }
+    return pts[i[flagged]], pts[j[flagged]], ratio[flagged], d
 
 
 def mark_discontinuities(
@@ -114,6 +160,7 @@ def mark_discontinuities(
     frame: int = 0,
     threshold: float = DEFAULT_THRESHOLD,
     min_gap: float = MIN_GAP,
+    crest_rise: float = CREST_RISE,
 ) -> int:
     """Flag the ground between each unexplained gap as a possible ditch.
 
@@ -121,7 +168,7 @@ def mark_discontinuities(
     returns themselves — that span is precisely the part of the world no
     measurement covered.
     """
-    near, far, _ = find_discontinuities(scan, sensor, threshold, min_gap)
+    near, far, _ = find_discontinuities(scan, sensor, threshold, min_gap, crest_rise)
     if not len(near):
         return 0
 

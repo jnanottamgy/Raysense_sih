@@ -55,10 +55,12 @@ across randomised maps.
 
 ## What does *not* work, stated up front
 
-1. **Precision is 73.3 %, not 100 %.** Crest occlusions produce genuine range gaps.
-2. **Smart allocation does not beat plain decimation on whole-map recall** — 81.4 % against
+1. **Precision is 79.4 %, not 100 %** — up from 73.3 % since the crest guard, which took
+   false cells on ditch-free terrain from 436 to 5 with recall unchanged. It costs a ditch
+   approached on an 11–14 % uphill grade; above 15 % the detector cannot see it either way.
+2. **Smart allocation does not beat plain decimation on whole-map recall** — 79.3 % against
    91.4 % at a 5 % budget. It wins only on *warning distance*, and only below ~8 %: at a 2 %
-   budget it gives **23.2 m of warning against 12.3 m**, 1.88×. We quote it only there.
+   budget it gives **24.5 m of warning against 12.3 m**, 1.99×. We quote it only there.
 3. **Nothing has touched real sensor data.** Zero frames. RELLIS-3D corroboration is the
    next task; `n_azimuth`, the `.label` packing and the pose frame are all unverified.
 4. **No embedded benchmark.** 1.5 ms is an x86 figure. Cost is linear in rays

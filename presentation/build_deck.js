@@ -129,9 +129,9 @@ feas.forEach((f,i)=>{ const x=6.70+i*2.11;
     color:f[1],align:'center',valign:'middle',isTextBox:true,margin:0}); });
 s.addText('HONEST RISKS',{x:0.40,y:5.24,w:12.5,h:0.32,fontSize:12,bold:true,fontFace:SANS,
   color:NEG,charSpacing:1.4,isTextBox:true,margin:0});
-const risks=[['73%','precision, not 100% — crest occlusions'],
+const risks=[['79%','precision — 5 false cells, not 436'],
              ['0','frames of RELLIS-3D run so far — next step'],
-             ['no','Jetson benchmark — we will not quote one']];
+             ['no','Jetson run — 1.5 ms measured on x86 only']];
 risks.forEach((r,i)=>{ const x=0.40+i*4.22;
   chip(s,x,5.58,4.0,1.05,'FBF3EE','E4C4B2');
   s.addText(r[0],{x:x+0.18,y:5.70,w:1.05,h:0.6,fontSize:26,bold:true,fontFace:SANS,

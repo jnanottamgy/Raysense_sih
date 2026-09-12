@@ -89,8 +89,61 @@ control (`results/threshold_sweep.csv`):
 | 7.0 | 59.6% | 0 | 92.2% |
 
 **3.0 is the knee.** Against 2.0 it costs six points of recall and removes **89% of the
-false flags**; going further costs another five points for far less. It is not clean — 73%
-precision, not 100% — and that limitation is stated on the deck.
+false flags**; going further costs another five points for far less.
+
+### The crest guard — what those 436 false cells actually were
+
+A crest occlusion makes the same signature as a ditch: the ground rises, the far beam clears
+the rise, and the shadow behind it is a range gap geometry cannot explain. There is one
+physical asymmetry, and it turns out to be decisive — **a crest is reached uphill, a ditch
+is not.**
+
+`scripts/crest_study.py` measures the approach slope of every flagged gap, taken from the
+previous return in the same azimuth column. Positives are gaps whose span overlaps a planted
+ditch; negatives are every gap found on the identical ditch-free control
+(`results/crest_study.csv`, 670 ditch gaps against 68 control gaps):
+
+| approach slope | p10 | p50 | p90 | max / min |
+|---|---:|---:|---:|---|
+| gaps over a real ditch | −0.02 | **0.00** | 0.01 | max **0.039** |
+| gaps on the ditch-free control | 0.22 | **0.46** | 0.71 | min (with evidence) **0.069** |
+
+**The two populations do not overlap.** `CREST_RISE = 0.10` sits above the ditch population
+rather than between the two, so the bias is toward keeping a ditch rather than dropping one.
+Where there is no previous return in the column there is no evidence, and the guard does not
+fire.
+
+Re-running the identical sweep with the guard on (`results/threshold_sweep_crest.csv`):
+
+| Threshold | Ditch recall | False cells | Precision |
+|---:|---:|---:|---:|
+| 2.0 | 94.0% | 3,883 → **132** | 45.6% → **70.9%** |
+| 2.5 | 90.8% | 1,954 → **18** | 57.4% → **76.0%** |
+| **3.0** | **88.0%** (unchanged) | 436 → **5** | 73.3% → **79.4%** |
+| 4.0 | 82.6% | 249 → **0** | 82.7% → **87.3%** |
+
+> **Recall is unchanged at every threshold. False cells on the control fall 436 → 5, a 98.9%
+> reduction, and precision gains 6.1 points.** The headline detection numbers are untouched:
+> 74.9 / 91.4 / 96.0 / 98.3% at 2 / 5 / 10 / 20% budget, identical before and after
+> (`results/final_sweep_crest.csv`). Full scan moves 99.8% → 99.6%, and flagged area at full
+> scan falls by a third — 103,443 cells to 67,952.
+
+The remaining 79.4% is no longer dominated by false alarms: only **5 cells** flag on
+ditch-free terrain. What the proxy counts as imprecision is now mostly the flagged span
+overrunning the true ditch rectangle — localisation slop, not a phantom hazard.
+
+**The guard also moves the knee.** With it on, threshold **2.5 beats the shipped unguarded
+3.0 on every axis at once** — 90.8% recall against 88.0%, 18 false cells against 436, 76.0%
+precision against 73.3%. We have not moved the shipped threshold, because every other number
+in this document is measured at 3.0 and re-baselining them is a separate exercise. It is the
+obvious next change.
+
+**The limitation, measured rather than guessed** (`tests/test_discontinuity.py`). On a
+uniform uphill approach the guard keeps the trench to a **10% grade**. At **12%** the
+detector can still see it but the guard suppresses it. From about **15%** the trench is
+invisible to the detector with or without the guard, because the near rim occludes it. So
+the harm window is roughly **11–14% of uphill grade**, and outside it the guard costs
+nothing.
 
 ### What it buys
 
@@ -154,23 +207,23 @@ route?* Coverage wins that, so plain decimation wins it:
 | Budget | uniform | front_roi | raysense |
 |---:|---:|---:|---:|
 | 2% | **74.9%** | 64.5% | 57.6% |
-| 5% | **91.4%** | 82.7% | 81.4% |
+| 5% | **91.4%** | 82.5% | 79.3% |
 
 **Warning distance** asks *how far off was the ditch ahead when you noticed it?* That is
 what a vehicle cares about, and concentration wins it:
 
 | Budget | uniform | front_roi | **raysense** |
 |---:|---:|---:|---:|
-| 2% | 12.3 m | 19.1 m | **23.2 m** |
-| 5% | 15.0 m | 21.5 m | **26.4 m** |
-| 10% | 18.3 m | **30.2 m** | 28.3 m |
-| 20% | 21.9 m | **30.2 m** | 28.3 m |
+| 2% | 12.3 m | 16.5 m | **24.5 m** |
+| 5% | 15.0 m | 21.5 m | **25.9 m** |
+| 10% | 16.3 m | **28.2 m** | 26.3 m |
+| 20% | 22.0 m | **28.2 m** | 26.3 m |
 
-**At a 2% budget the allocator gives 1.88× the warning of uniform** — 5.8 seconds to react
+**At a 2% budget the allocator gives 1.99× the warning of uniform** — 6.1 seconds to react
 instead of 3.1. It is also the only method that finds **all four** ditches at 2%.
 
 Above about 10% the static front wedge overtakes it, and at 10% that wedge matches a full
-scan's 30.2 m warning distance. **If the deck quotes an allocator number, quote the 2% one**
+scan's 28.2 m warning distance. **If the deck quotes an allocator number, quote the 2% one**
 — and say the limitation before being asked.
 
 Three allocator designs were built and measured; the first two lost outright:
@@ -212,9 +265,11 @@ Frame image: `results/demo_frames/frame_008.png`
 
 ## Honest limitations
 
-1. **73% precision at threshold 3.0.** Crest occlusions produce genuine range gaps. Whether
-   that is a false positive is arguable — the ground behind a crest *is* unobserved — but it
-   is not zero.
+1. **79% precision at threshold 3.0**, up from 73% since the crest guard. Only 5 cells now
+   flag on ditch-free terrain, down from 436. What the proxy still counts as imprecision is
+   mostly the flagged span overrunning the true ditch rectangle rather than a phantom hazard.
+   The guard costs a ditch approached on an 11–14% uphill grade; above 15% the detector
+   cannot see it either way.
 2. **Smart allocation does not beat plain decimation on whole-map recall.** We say so.
 3. **Nothing has touched real sensor data.** RELLIS-3D is the intended corroboration;
    `n_azimuth`, `.label` packing and the pose frame all remain unverified.
@@ -235,6 +290,8 @@ python scripts/build_ground_truth.py --frames 40          # cached ground truth
 python scripts/run_sweep.py --frames 40 \
     --allocators full uniform front_roi raysense           # the comparison
 python scripts/threshold_sweep.py --frames 40              # the threshold curve
+python scripts/crest_study.py --frames 40                  # crest vs ditch separation
+python scripts/benchmark.py --label "this machine"         # per-frame cost
 python scripts/make_demo.py --fraction 0.05 --frames 40    # the offline demo
 pytest -q && ruff check src tests scripts                  # 103 tests
 ```
@@ -244,5 +301,8 @@ pytest -q && ruff check src tests scripts                  # 103 tests
 | `results/final_sweep.csv` | every metric, every allocator, every budget |
 | `results/final_sweep_detections.csv` | first-detection event per ditch per run |
 | `results/threshold_sweep.csv` | the threshold curve with its control |
+| `results/crest_study.csv` | approach slope of every flagged gap, ditch vs control |
+| `results/benchmark.csv` | per-frame cost by budget, with the host it was measured on |
+| `*_noguard.csv` | the same runs with the crest guard disabled, for comparison |
 | `results/demo.html` | the offline demo player |
 | `deck/Raysense_SIH26053_Idea.pdf` | six-slide idea submission |
