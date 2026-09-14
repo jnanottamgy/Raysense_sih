@@ -206,6 +206,33 @@ Any of you can be asked any of these. Drill until they come out without thinking
 > What's left is mostly the flagged span overrunning the true ditch rectangle. That is
 > localisation slop, not a phantom hazard. And a candidate is "slow down and look", not "stop".
 
+**Q. Can you get precision higher than 79%?**
+> Yes, and we measured exactly what it costs, which is why we did not just do it.
+>
+> Once the crest guard removes the phantom hazards, what is left is **localisation**: we
+> paint the whole span between the two returns, and both of those returns are measured
+> ground. 79% of flagged cells are inside a real ditch, 16% within three metres of one,
+> 3% further away.
+>
+> Two levers are in the code and off by default — trim the ends of the span, and keep the
+> flag only on cells nobody observed plus a lip around them:
+
+| trim | rim | detected | **missed-unsafe** | precision |
+|---:|---:|---:|---:|---:|
+| **0.0** | **off** | **91.4%** | **0.00%** | **79.4%** |
+| 0.3 | 2 | 91.6% | 0.04% | 86.7% |
+| 0.6 | 2 | 90.9% | 0.04% | **87.5%** |
+| 0.6 | 1 | 90.8% | 0.14% | **90.7%** |
+
+> **Every row that clears 87% moves missed-unsafe off zero** — the share of real ditch
+> cells we would call *drivable*. The cells it costs sit on the floor of a shallow crater:
+> broad, observed, locally flat, so the height test alone passes them and only the
+> candidate flag holds them back.
+>
+> **So 79% is not a limit we failed to reach past. It is the price of zero.** We ship the
+> row where nothing real is waved through. The curve is committed, and a platform that
+> would rather take the misses can move along it in one argument.
+
 **Q. What does the crest guard cost you?**
 > A ditch approached on a steep uphill. We measured the boundary rather than guessing it: up
 > to a **10% grade** the trench is still found; at **12%** the detector can see it but the

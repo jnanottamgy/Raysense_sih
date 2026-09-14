@@ -132,6 +132,43 @@ The remaining 79.4% is no longer dominated by false alarms: only **5 cells** fla
 ditch-free terrain. What the proxy counts as imprecision is now mostly the flagged span
 overrunning the true ditch rectangle — localisation slop, not a phantom hazard.
 
+### Why precision stops at 79% — and what buying more of it costs
+
+Once the crest guard removes the phantom hazards, the remaining imprecision is
+**localisation, not detection**. `mark_span` paints every cell between the near and far
+return, and both of those are returns — measured ground. A span that brackets a 2.4 m
+trench starting 2 m short of it necessarily paints metres of solid ground too. Of every
+flagged cell: **79.2% sit inside a real ditch, 15.5% within 3 m of one, 3.3% further away.**
+
+Two levers are shipped, both **off by default**, and `scripts/localise_study.py` measures
+what each costs (`results/localise_study.csv`, uniform at 5% over 40 frames):
+
+| trim | rim | detected | **missed-unsafe** | candidate precision |
+|---:|---:|---:|---:|---:|
+| **0.0** | **off** | **91.4%** | **0.00%** | **79.4%** |
+| 0.0 | 2 | 91.3% | 0.04% | 84.6% |
+| 0.3 | off | 91.6% | 0.02% | 82.5% |
+| 0.3 | 2 | 91.6% | 0.04% | 86.7% |
+| 0.3 | 1 | 91.5% | 0.14% | 90.3% |
+| 0.6 | 2 | 90.9% | 0.04% | **87.5%** |
+| 0.6 | 1 | 90.8% | 0.14% | **90.7%** |
+
+`trim` leaves *n* metres unpainted at each end of a span. `rim` keeps the flag only on
+cells nobody observed, plus that many cells of lip around them — a cell we got a return
+from is measured ground and cannot be a hole, except at the edge of one.
+
+**Precision above 87% is available, and it is not free.** Every row that reaches it moves
+`negative_missed_unsafe` — the share of real ditch cells the system calls *drivable* — off
+zero. The cells it costs are on the floor of the shallow 1.6 m crater: broad, observed,
+and locally flat, so the height test alone calls them traversable and only the
+candidate flag holds them back.
+
+> **We ship the 79.4% row.** It is the only setting where nothing real is waved through,
+> and on a system whose entire claim is that it never turns *"I did not look there"* into
+> *"safe to drive"*, that column outranks the precision column. The levers exist, the
+> curve is committed, and a platform that would rather take the misses than the false
+> alarms can move along it in one argument.
+
 **The guard also moves the knee.** With it on, threshold **2.5 beats the shipped unguarded
 3.0 on every axis at once** — 90.8% recall against 88.0%, 18 false cells against 436, 76.0%
 precision against 73.3%. We have not moved the shipped threshold, because every other number

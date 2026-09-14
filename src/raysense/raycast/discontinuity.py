@@ -161,6 +161,7 @@ def mark_discontinuities(
     threshold: float = DEFAULT_THRESHOLD,
     min_gap: float = MIN_GAP,
     crest_rise: float = CREST_RISE,
+    trim: float = 0.0,
 ) -> int:
     """Flag the ground between each unexplained gap as a possible ditch.
 
@@ -175,12 +176,31 @@ def mark_discontinuities(
     res = emap.config.resolution
     seg = far - near
     length = np.linalg.norm(seg[:, :2], axis=1)
+
+    # `trim` metres are left unpainted at each end. Both endpoints are returns,
+    # so we *measured* ground there — painting them is guaranteed imprecision.
+    # It is off by default: see docs/RESULTS.md, trimming buys precision and
+    # costs a little of the zero-missed-unsafe margin.
+    # Step count comes from the longest gap *before* any trim filter, so the
+    # sampling density does not depend on which gaps survive trimming — one
+    # walk is then comparable with another.
     n_steps = int(np.ceil(max(1.0, length.max() / res))) + 1
+
+    if trim > 0.0:
+        usable = length > 2.0 * trim + 1e-6
+        if not usable.any():
+            return 0
+        near, seg, length = near[usable], seg[usable], length[usable]
+        lo = trim / length
+        hi = 1.0 - lo
+    else:
+        lo = np.zeros(length.shape)
+        hi = np.ones(length.shape)
 
     rows: list[np.ndarray] = []
     cols: list[np.ndarray] = []
-    for s in np.linspace(0.0, 1.0, n_steps):
-        p = near + seg * s
+    for u in np.linspace(0.0, 1.0, n_steps):
+        p = near + seg * (lo + u * (hi - lo))[:, None]
         r, c, inside = emap.world_to_cell(p[:, 0], p[:, 1])
         rows.append(r[inside])
         cols.append(c[inside])
@@ -191,3 +211,38 @@ def mark_discontinuities(
     emap.state[r, c] &= ~int(CellState.FREE)
     emap.last_seen[r, c] = frame
     return int(np.unique(np.stack([r, c]), axis=1).shape[1])
+
+
+def prune_candidates(emap: FixedGridMap, rim: int = 2) -> int:
+    """Drop CANDIDATE_NEGATIVE from cells we have a return from.
+
+    A cell with a return is measured ground, so it cannot be a hole — except
+    at the lip of one, where the return sits on the rim of a gap whose interior
+    was never seen. `rim` is how many cells of that lip to keep, so the
+    suspicion survives exactly where it is doing safety work.
+
+    **Off by default in the shipped pipeline.** It raises candidate precision
+    from 79.4% to 84.6% at rim=2, and further with `mark_discontinuities(trim=)`,
+    but it moves `negative_missed_unsafe` off zero — the cells it costs are on
+    the floor of a broad, shallow crater, which reads as locally flat once
+    observed and is held non-drivable only by this flag. Enable it where a
+    platform would rather take the misses than the false alarms, and say which
+    you chose. Measured curve: `results/localise_study.csv`.
+
+    Returns how many cells were cleared.
+    """
+    cand = (emap.state & int(CellState.CANDIDATE_NEGATIVE)) != 0
+    if not cand.any():
+        return 0
+    seen = emap.observed()
+    core = cand & ~seen                       # the part nobody ever looked at
+    lip = core.copy()
+    for _ in range(max(0, rim)):
+        grown = lip.copy()
+        for ax in (0, 1):
+            grown |= np.roll(lip, 1, axis=ax) | np.roll(lip, -1, axis=ax)
+        lip = grown
+    keep = core | (cand & lip & seen)
+    drop = cand & ~keep
+    emap.state[drop] &= ~int(CellState.CANDIDATE_NEGATIVE)
+    return int(drop.sum())

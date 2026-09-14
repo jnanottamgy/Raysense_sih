@@ -4,7 +4,11 @@ import numpy as np
 import pytest
 
 from raysense.mapping import FixedGridMap, MapConfig
-from raysense.raycast import find_discontinuities, mark_discontinuities
+from raysense.raycast import (
+    find_discontinuities,
+    mark_discontinuities,
+    prune_candidates,
+)
 from raysense.raycast.discontinuity import DEFAULT_THRESHOLD
 from raysense.sensor import SensorModel
 from raysense.sim import Terrain, make_terrain
@@ -158,3 +162,45 @@ def test_crest_guard_can_be_switched_off():
     scan = scan_over(t)
     assert len(find_discontinuities(scan, SENSOR, crest_rise=0.0)[0]) >= \
         len(find_discontinuities(scan, SENSOR)[0])
+
+
+def test_trim_is_off_by_default_and_narrows_the_span_when_on():
+    """Trimming must change nothing unless asked for, then paint strictly less."""
+    t = make_terrain(size_m=240, resolution=0.3, roughness=3.0, seed=7)
+    t.add_trench((10.0, 0.0), length=16.0, width=2.4, depth=1.8, angle_deg=90.0)
+    scan = scan_over(t)
+
+    plain, explicit_zero = FixedGridMap(CFG), FixedGridMap(CFG)
+    mark_discontinuities(plain, scan, SENSOR)
+    mark_discontinuities(explicit_zero, scan, SENSOR, trim=0.0)
+    assert (plain.state == explicit_zero.state).all(), "trim=0 must be the default"
+
+    trimmed = FixedGridMap(CFG)
+    mark_discontinuities(trimmed, scan, SENSOR, trim=0.6)
+    flag = int(CellState.CANDIDATE_NEGATIVE)
+    a = ((plain.state & flag) != 0).sum()
+    b = ((trimmed.state & flag) != 0).sum()
+    assert b < a, f"a trimmed span should paint fewer cells, got {b} vs {a}"
+
+
+def test_prune_keeps_the_lip_of_an_unobserved_gap():
+    """Pruning drops observed cells but never the rim around what we never saw."""
+    t = make_terrain(size_m=240, resolution=0.3, roughness=3.0, seed=7)
+    t.add_trench((10.0, 0.0), length=16.0, width=2.4, depth=1.8, angle_deg=90.0)
+    scan = scan_over(t)
+
+    emap = FixedGridMap(CFG)
+    emap.integrate(scan.points, frame=0)
+    mark_discontinuities(emap, scan, SENSOR)
+
+    flag = int(CellState.CANDIDATE_NEGATIVE)
+    before = ((emap.state & flag) != 0).copy()
+    unobserved_before = before & ~emap.observed()
+
+    dropped = prune_candidates(emap, rim=2)
+    after = (emap.state & flag) != 0
+
+    assert dropped > 0, "there should be observed span cells to drop"
+    assert not (after & ~before).any(), "pruning must only clear flags"
+    # every cell nobody ever looked at keeps its suspicion
+    assert (unobserved_before & ~after).sum() == 0
