@@ -556,10 +556,18 @@ strongest material. **Offer one, not three.**
 > *"May I show you the one frame where the conventional system says clear to drive?"*
 > → Frame 8. 11.4 m from a 3 m wide, 2.2 m deep trench. Both systems at a 2% budget —
 > 1,280 rays for the conventional one, 1,256 for ours, so we use slightly **fewer**. It says
-> clear to drive. We said DITCH AHEAD at 18.4 m. It only warns at 8.6 m — 9.8 metres and
-> 2.5 seconds later, inside the braking distance it needs at any real speed. And it doesn't
-> hold — later in the run, at frames 20 and 22, it reverts to *unknown ahead*, because it is
-> reasoning about heights it can see instead of gaps it cannot.
+> clear to drive. We said DITCH AHEAD at 18.4 m and never let go. And the interesting part
+> is that this is a *reversal*: it had flagged the trench one frame earlier, at 13.0 m, then
+> took it back. It only warns steadily from 9.9 m — 8.5 metres and 2.1 seconds later, inside
+> the braking distance it needs at any real speed. The failure isn't blindness, it's
+> confidence: it has returns off the rim, judges the rim flat, and never observes the
+> interior at all.
+
+> *"Does that happen more than once?"* (if they follow up)
+> → Yes, at the next trench too — 16 m by 2.4 m, 1.8 m deep. The conventional system says
+> *unknown ahead* at 10 m and again at 6 m and only warns at 2 m; ours has it flagged
+> throughout. Every frame of both approaches is in `results/demo_trace.csv` —
+> `python scripts/demo_trace.py` regenerates it.
 
 > *"Would you like the number a programme manager can use tomorrow?"*
 > → 23 km/h. The speed ceiling for a 1 m ditch on a stock OS1-64. Nobody publishes it.

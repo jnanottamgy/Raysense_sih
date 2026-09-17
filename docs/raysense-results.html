@@ -655,14 +655,26 @@ tr.key td{background:var(--signal-soft)}
         <thead><tr><th class="num">Frame</th><th class="num">Distance to ditch</th>
           <th>Conventional</th><th>Raysense</th></tr></thead>
         <tbody>
+          <tr><td class="num">3</td><td class="num">20.2 m</td>
+            <td><span class="verdict v-unk">unknown ahead</span></td>
+            <td><span class="verdict v-unk">unknown ahead</span></td></tr>
           <tr><td class="num">4</td><td class="num">18.4 m</td>
+            <td><span class="verdict v-unk">unknown ahead</span></td>
+            <td><span class="verdict v-bad">DITCH AHEAD</span></td></tr>
+          <tr><td class="num">5</td><td class="num">16.6 m</td>
             <td><span class="verdict v-unk">unknown ahead</span></td>
             <td><span class="verdict v-bad">DITCH AHEAD</span></td></tr>
           <tr><td class="num">6</td><td class="num">14.8 m</td>
             <td><span class="verdict v-unk">unknown ahead</span></td>
             <td><span class="verdict v-bad">DITCH AHEAD</span></td></tr>
+          <tr><td class="num">7</td><td class="num">13.0 m</td>
+            <td><span class="verdict v-bad">DITCH AHEAD</span></td>
+            <td><span class="verdict v-bad">DITCH AHEAD</span></td></tr>
           <tr class="key"><td class="num"><strong>8</strong></td><td class="num"><strong>11.4 m</strong></td>
             <td><span class="verdict v-ok">clear to drive</span></td>
+            <td><span class="verdict v-bad">DITCH AHEAD</span></td></tr>
+          <tr><td class="num">9</td><td class="num">9.9 m</td>
+            <td><span class="verdict v-bad">DITCH AHEAD</span></td>
             <td><span class="verdict v-bad">DITCH AHEAD</span></td></tr>
           <tr><td class="num">10</td><td class="num">8.6 m</td>
             <td><span class="verdict v-bad">DITCH AHEAD</span></td>
@@ -671,12 +683,32 @@ tr.key td{background:var(--signal-soft)}
       </table>
     </div>
     <div class="doc">
-      <p><strong>We warn at 18.4 m. The conventional system reports the ground as <em>clear to
-        drive</em> at 11.4 m</strong> and only warns at 8.6 m — 9.8 metres later, and inside the
-        braking distance it would need at any real speed.</p>
-      <p>It does not hold, either: at frames 20 and 22 the conventional system reverts to
-        <em>unknown ahead</em>, because it reasons about heights it can see rather than gaps it
-        cannot.</p>
+      <p><strong>We warn at 18.4 m and never let go. The conventional system first flags the
+        trench at 13.0 m, takes it back at 11.4 m — reporting the ground as <em>clear to
+        drive</em> — and only warns steadily from 9.9 m.</strong> That is 8.5 m later, 2.1 s at
+        the 4 m/s this run drives, and inside the braking distance it would need at any real
+        speed.</p>
+      <p>The reversal is the part worth looking at, because the failure is not blindness. It is
+        <em>confidence</em>. The conventional map has returns off the trench rim, judges the rim
+        flat, and never observes the interior at all — so it has something to report, and reports
+        the wrong thing.</p>
+      <p>It happens again at the next trench (16 m &times; 2.4 m, 1.8 m deep, at x = 10): the
+        conventional system says <em>unknown ahead</em> at 10.0 m and again at 6.0 m, and only
+        warns at 2.0 m, while ours has it flagged throughout.</p>
+      <div class="note warn">
+        <span class="tag">Correction</span>
+        <p>An earlier version of this page said the conventional system &ldquo;only warns at
+          8.6 m &mdash; 9.8 metres later&rdquo;. That was read off the demo&rsquo;s rendered
+          frames, which are every <em>second</em> frame, so frames 7 and 9 were never looked at:
+          the flag at 13.0 m and the recovery at 9.9 m were both missed. Every frame of the
+          approach is now in the table. The honest gap to a steady warning is
+          <strong>8.5 m / 2.1 s, not 9.8 m / 2.5 s</strong> &mdash; and the conventional system
+          is <em>unstable</em> rather than merely late, which is the more damning finding, not a
+          softer one. The claim that went with it, &ldquo;at frames 20 and 22 it reverts to
+          unknown ahead&rdquo;, was about the <em>next</em> trench; this one holds DITCH AHEAD
+          from frame 9 to the end of the run. Check it with
+          <code>python scripts/demo_trace.py</code>.</p>
+      </div>
     </div>
   </section>
 

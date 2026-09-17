@@ -283,19 +283,41 @@ the gap test. Approaching a 3 m wide, 2.2 m deep trench:
 
 | Frame | Distance to ditch | Conventional | Raysense |
 |---:|---:|---|---|
+| 3 | 20.2 m | unknown ahead | unknown ahead |
 | 4 | 18.4 m | unknown ahead | **DITCH AHEAD** |
+| 5 | 16.6 m | unknown ahead | **DITCH AHEAD** |
 | 6 | 14.8 m | unknown ahead | **DITCH AHEAD** |
+| 7 | 13.0 m | DITCH AHEAD | **DITCH AHEAD** |
 | **8** | **11.4 m** | **clear to drive** | **DITCH AHEAD** |
+| 9 | 9.9 m | DITCH AHEAD | **DITCH AHEAD** |
 | 10 | 8.6 m | DITCH AHEAD | DITCH AHEAD |
 
-**We warn at 18.4 m. The conventional system reports the ground as *clear to drive* at
-11.4 m and only warns at 8.6 m** — 9.8 metres later, 2.5 seconds later at traverse speed,
+**We warn at 18.4 m and never let go. The conventional system first flags the trench at
+13.0 m, takes it back at 11.4 m — reporting the ground as *clear to drive* — and only
+warns steadily from 9.9 m.** That is **8.5 m later**, 2.1 s at the 4 m/s this run drives,
 and inside the braking distance it would need at any real speed.
 
-It also does not hold: at frames 20 and 22 the conventional system reverts to *unknown
-ahead*, because it is reasoning about heights it can see instead of gaps it cannot.
+The reversal is the part worth looking at, because the failure is not blindness. It is
+*confidence*. The conventional map has returns off the trench rim, judges the rim flat,
+and never observes the interior at all, so it has something to report and reports the
+wrong thing. Absence of evidence is being read as evidence of flat ground.
+
+It happens again at the next trench (16 m × 2.4 m, 1.8 m deep, at x = 10): the conventional
+system says *unknown ahead* at 10.0 m and again at 6.0 m, and only warns at 2.0 m, while
+ours has it flagged throughout.
+
+> **Correction.** An earlier version of this section said the conventional system "only
+> warns at 8.6 m — 9.8 metres later, 2.5 seconds later". That was read off the demo's
+> rendered frames, which are every *second* frame, so frames 7 and 9 were never looked at
+> and the flag at 13.0 m and the recovery at 9.9 m were both missed. Every frame of the
+> approach is now in the table above. The honest gap to a steady warning is **8.5 m /
+> 2.1 s, not 9.8 m / 2.5 s** — and the conventional system is *unstable*, not merely late,
+> which is the more damning finding rather than a softer one. A second claim went with it:
+> "at frames 20 and 22 it reverts to unknown ahead" was about the *next* trench, not this
+> one, which holds DITCH AHEAD from frame 9 to the end of the run.
 
 Reproduce: `python scripts/make_demo.py --fraction 0.02 --frames 40 --every 2`
+Every-frame verdicts: `python scripts/demo_trace.py` → `results/demo_trace.csv`
 Frame image: `results/demo_frames/frame_008.png`
 
 ---
