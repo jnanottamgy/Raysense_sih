@@ -1,0 +1,395 @@
+<title>Raysense</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+/* dark-first: the bare :root carries the default (dark) set */
+:root{
+  --ground:#0B1012; --surface:#121A1C; --surface-2:#182325; --raise:#1E2B2D;
+  --ink:#E8F0EC; --ink-2:#9DB0A9; --ink-3:#6B807A;
+  --rule:#22302F; --rule-2:#182324;
+  --miss:#E8834E; --hit:#4FC28C; --sensor:#58B4DF; --edge:#A98CDC;
+  --miss-dim:#3A2318; --hit-dim:#13291F; --sensor-dim:#12242E;
+  --f-dis:"Archivo",'Helvetica Neue',Helvetica,Arial,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Consolas,monospace;
+}
+@media (prefers-color-scheme:light){
+  :root:not([data-theme="dark"]){
+    --ground:#FAFBF9; --surface:#FFFFFF; --surface-2:#F1F5F2; --raise:#E7EDE9;
+    --ink:#101617; --ink-2:#42524E; --ink-3:#6E807B;
+    --rule:#DCE4E0; --rule-2:#EBF0ED;
+    --miss:#B4501D; --hit:#1E7A52; --sensor:#1B6E95; --edge:#5F3F94;
+    --miss-dim:#FBEDE4; --hit-dim:#E6F2EB; --sensor-dim:#E5F0F6;
+  }
+}
+:root[data-theme="light"]{
+  --ground:#FAFBF9; --surface:#FFFFFF; --surface-2:#F1F5F2; --raise:#E7EDE9;
+  --ink:#101617; --ink-2:#42524E; --ink-3:#6E807B;
+  --rule:#DCE4E0; --rule-2:#EBF0ED;
+  --miss:#B4501D; --hit:#1E7A52; --sensor:#1B6E95; --edge:#5F3F94;
+  --miss-dim:#FBEDE4; --hit-dim:#E6F2EB; --sensor-dim:#E5F0F6;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:var(--f-dis); font-size:16px; line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:880px; margin:0 auto; padding-inline:22px; padding-block:0 64px}
+
+/* ---- shared ---- */
+.eyebrow{
+  font-family:var(--f-mono); font-size:11px; font-weight:500; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--ink-3); margin:0;
+}
+section{border-top:1px solid var(--rule); padding-block:46px}
+h2{
+  font-family:var(--f-dis); font-weight:800; font-size:clamp(25px,4.2vw,34px);
+  letter-spacing:-.022em; line-height:1.1; margin:12px 0 0; text-wrap:balance;
+}
+p{margin:16px 0 0; max-width:64ch; color:var(--ink-2)}
+p strong{color:var(--ink); font-weight:600}
+.mono{font-family:var(--f-mono); font-variant-numeric:tabular-nums}
+
+/* ---- masthead ---- */
+header{padding-block:56px 44px}
+h1{
+  font-family:var(--f-dis); font-weight:800; font-size:clamp(34px,7.4vw,62px);
+  line-height:1.03; letter-spacing:-.034em; margin:18px 0 0; text-wrap:balance;
+}
+h1 .a{color:var(--hit)} h1 .b{color:var(--miss)}
+.sub{font-size:clamp(16px,2.3vw,18.5px); margin-top:22px; max-width:56ch}
+
+/* ---- the split ---- */
+.split{display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--rule);
+  border:1px solid var(--rule); border-radius:2px; margin-top:34px; overflow:hidden}
+.half{background:var(--surface); padding:26px 24px 24px}
+.half .v{
+  font-family:var(--f-mono); font-weight:700; font-size:clamp(40px,9vw,62px);
+  line-height:1; letter-spacing:-.04em; display:block; font-variant-numeric:tabular-nums;
+}
+.half .k{font-size:15px; font-weight:600; margin-top:12px; color:var(--ink)}
+.half .n{font-size:13.5px; color:var(--ink-3); margin-top:6px; line-height:1.45}
+.half.up .v{color:var(--hit)} .half.down .v{color:var(--miss)}
+.split-note{
+  font-family:var(--f-mono); font-size:12px; color:var(--ink-3); margin-top:14px;
+  letter-spacing:.02em;
+}
+
+/* ---- figure ---- */
+figure{margin:28px 0 0}
+figure svg{display:block; width:100%; height:auto; max-width:100%}
+figcaption{font-size:14px; color:var(--ink-3); margin-top:14px; max-width:64ch}
+figcaption b{color:var(--ink-2); font-weight:600}
+.eq{font-family:var(--f-mono); color:var(--miss); font-weight:500}
+.panel{background:var(--surface); border:1px solid var(--rule); border-radius:2px; padding:20px 20px 16px}
+
+/* ---- table ---- */
+.tw{overflow-x:auto; margin-top:24px; border:1px solid var(--rule); border-radius:2px}
+table{border-collapse:collapse; width:100%; min-width:430px; font-size:14px}
+th,td{padding:10px 16px; text-align:right; border-bottom:1px solid var(--rule-2)}
+th:first-child,td:first-child{text-align:left}
+thead th{
+  font-family:var(--f-mono); font-size:10.5px; font-weight:700; letter-spacing:.11em;
+  text-transform:uppercase; color:var(--ink-3); background:var(--surface-2);
+  border-bottom:1px solid var(--rule); white-space:nowrap;
+}
+tbody tr:last-child td{border-bottom:none}
+td{font-family:var(--f-mono); color:var(--ink-2); font-variant-numeric:tabular-nums}
+td:first-child{font-family:var(--f-dis); color:var(--ink); font-weight:500}
+tr.mark td{background:var(--miss-dim); color:var(--miss); font-weight:700}
+tr.mark td:first-child{color:var(--miss)}
+
+/* ---- big stat ---- */
+.stat{display:flex; flex-wrap:wrap; align-items:baseline; gap:10px 26px; margin-top:28px}
+.stat .v{
+  font-family:var(--f-mono); font-weight:700; font-size:clamp(52px,12vw,88px);
+  line-height:.92; letter-spacing:-.05em; color:var(--miss); white-space:nowrap;
+}
+.stat .v .u{font-size:.34em; letter-spacing:-.01em; margin-left:.1em}
+.stat .t{font-size:17px; font-weight:600; color:var(--ink);
+  flex:1 1 240px; max-width:30ch; line-height:1.4}
+.derive{
+  font-family:var(--f-mono); font-size:13px; color:var(--ink-3); margin-top:20px;
+  border-left:2px solid var(--rule); padding-left:16px; line-height:1.75;
+}
+
+/* ---- chart ---- */
+.chart{margin-top:30px}
+.legend{display:flex; flex-wrap:wrap; gap:20px; margin-top:16px;
+  font-family:var(--f-mono); font-size:12.5px; color:var(--ink-2)}
+.legend i{display:inline-block; width:22px; height:10px; border-radius:1px;
+  margin-right:8px; vertical-align:middle}
+
+/* ---- honest list ---- */
+.honest{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule);
+  border-radius:2px; margin-top:28px; overflow:hidden}
+.item{background:var(--surface); padding:22px 24px}
+.item h3{
+  font-family:var(--f-dis); font-size:16.5px; font-weight:700; margin:0;
+  letter-spacing:-.01em; color:var(--ink);
+}
+.item p{margin-top:9px; font-size:15px; max-width:70ch}
+.tag{
+  font-family:var(--f-mono); font-size:10.5px; font-weight:700; letter-spacing:.11em;
+  text-transform:uppercase; padding:3px 8px; border-radius:2px; white-space:nowrap;
+  background:var(--miss-dim); color:var(--miss); margin-right:10px;
+}
+.tag.ok{background:var(--hit-dim); color:var(--hit)}
+
+/* ---- rigour ---- */
+.rig{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--rule);
+  border:1px solid var(--rule); border-radius:2px; margin-top:28px; overflow:hidden}
+.rig div{background:var(--surface); padding:20px 18px}
+.rig .v{font-family:var(--f-mono); font-weight:700; font-size:24px; color:var(--sensor);
+  letter-spacing:-.03em; display:block; font-variant-numeric:tabular-nums}
+.rig .k{font-size:12.5px; color:var(--ink-3); margin-top:8px; line-height:1.4}
+
+footer{border-top:1px solid var(--rule); padding-block:38px 0; margin-top:8px}
+footer a{color:var(--sensor); text-decoration:none; border-bottom:1px solid var(--rule)}
+footer a:hover{border-bottom-color:var(--sensor)}
+footer a:focus-visible{outline:2px solid var(--sensor); outline-offset:3px}
+.sig{font-family:var(--f-mono); font-size:12.5px; color:var(--ink-3); margin-top:16px;
+  line-height:1.8}
+
+@media (max-width:640px){
+  .split{grid-template-columns:1fr}
+  .rig{grid-template-columns:1fr 1fr}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Smart India Hackathon 2026 · SIH26053 · DRDO</p>
+  <h1>A lidar sees <span class="a">93%</span> of what sticks&nbsp;up.<br>And <span class="b">11%</span> of what you can fall&nbsp;into.</h1>
+  <p class="sub">We spent six weeks measuring why, and it turned out not to be an algorithm
+  problem. It is geometry — and once you write the geometry down, one test recovers most
+  of what the sensor was missing.</p>
+
+  <div class="split">
+    <div class="half up">
+      <span class="v">92.9%</span>
+      <div class="k">Boulders. Things that stick up.</div>
+      <div class="n">A rock blocks beams. Blocked beams are easy to notice.</div>
+    </div>
+    <div class="half down">
+      <span class="v">11.5%</span>
+      <div class="k">Trenches. Things you fall into.</div>
+      <div class="n">A narrow ditch is not entered by beams. It is stepped over.</div>
+    </div>
+  </div>
+  <p class="split-note">40 full scans · every ray fired · no budget limit · Ouster OS1-64 geometry</p>
+</header>
+
+<section>
+  <p class="eyebrow">Why more rays cannot fix it</p>
+  <h2>A bump scales with range. A ditch scales with range squared.</h2>
+  <p>Two adjacent beams land a predictable distance apart on level ground, and that distance
+  grows as <span class="eq">r²·Δθ / h</span>. A ditch narrower than the gap is straddled by
+  both beams and returns nothing anomalous. <strong>A full scan already spends every ray, so
+  spending more cannot help.</strong> A bump is different — it intercepts a beam as soon as
+  its height reaches <span class="eq">r·Δθ</span>. Linear, not quadratic.</p>
+
+  <figure>
+    <div class="panel">
+      <svg viewBox="-46 0 700 246" role="img" aria-label="A lidar on a 1.8 metre mast fires two adjacent beams. Both land on level ground, one before a ditch and one well beyond it, so neither beam enters the ditch. The gap between where they land grows with the square of range.">
+        <text x="300" y="20" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13" font-weight="600" fill="var(--ink-2)">no beam lands inside it — it is stepped over, not entered</text>
+        <line x1="300" y1="30" x2="300" y2="136" stroke="var(--miss)" stroke-width="1" stroke-dasharray="4 5"/>
+        <path d="M24 140 H240 L268 176 H332 L360 140 H636" fill="none" stroke="var(--ink-3)" stroke-width="2.4"/>
+        <line x1="54" y1="140" x2="54" y2="56" stroke="var(--ink-3)" stroke-width="2.4"/>
+        <rect x="38" y="36" width="32" height="20" rx="2" fill="var(--sensor)"/>
+        <text x="54" y="50" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="#08131A">OS1</text>
+        <line x1="62" y1="56" x2="200" y2="140" stroke="var(--sensor)" stroke-width="1.9"/>
+        <line x1="62" y1="56" x2="446" y2="140" stroke="var(--sensor)" stroke-width="1.9"/>
+        <circle cx="200" cy="140" r="4.8" fill="var(--sensor)"/>
+        <circle cx="446" cy="140" r="4.8" fill="var(--sensor)"/>
+        <path d="M100 82 A 44 44 0 0 0 96 66" fill="none" stroke="var(--ink-3)" stroke-width="1.2"/>
+        <path d="M106 70 L128 52 H136" fill="none" stroke="var(--ink-3)" stroke-width="1"/>
+        <text x="142" y="56" font-family="JetBrains Mono, monospace" font-size="12" font-weight="500" fill="var(--ink-2)">Δθ = 0.714°</text>
+        <line x1="26" y1="56" x2="26" y2="140" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 3"/>
+        <line x1="21" y1="56" x2="31" y2="56" stroke="var(--ink-3)" stroke-width="1"/>
+        <line x1="21" y1="140" x2="31" y2="140" stroke="var(--ink-3)" stroke-width="1"/>
+        <text x="16" y="102" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11" fill="var(--ink-3)">1.8 m</text>
+        <text x="300" y="164" text-anchor="middle" font-family="Archivo, sans-serif" font-size="12" font-weight="700" fill="var(--miss)">ditch</text>
+        <line x1="200" y1="146" x2="200" y2="196" stroke="var(--miss)" stroke-width="1" stroke-dasharray="3 4"/>
+        <line x1="446" y1="146" x2="446" y2="196" stroke="var(--miss)" stroke-width="1" stroke-dasharray="3 4"/>
+        <line x1="200" y1="202" x2="446" y2="202" stroke="var(--miss)" stroke-width="1.5"/>
+        <line x1="200" y1="197" x2="200" y2="207" stroke="var(--miss)" stroke-width="1.5"/>
+        <line x1="446" y1="197" x2="446" y2="207" stroke="var(--miss)" stroke-width="1.5"/>
+        <text x="323" y="228" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700" fill="var(--miss)">gap ∝ r² · Δθ / h</text>
+      </svg>
+    </div>
+    <figcaption>Both beams return. Nothing looks wrong ray by ray — what is wrong is the
+    <b>spacing</b>, and that is the quantity nobody was checking.</figcaption>
+  </figure>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>Range</th><th>Beam spacing on the ground</th><th>Smallest bump</th><th>Smallest ditch</th></tr></thead>
+      <tbody>
+        <tr><td>10 m</td><td>0.72 m</td><td>0.12 m</td><td>0.69 m</td></tr>
+        <tr><td>20 m</td><td>3.51 m</td><td>0.25 m</td><td>2.77 m</td></tr>
+        <tr class="mark"><td>30 m</td><td>9.17 m</td><td>0.37 m</td><td>6.23 m</td></tr>
+        <tr><td>40 m</td><td>16.51 m</td><td>0.50 m</td><td>11.08 m</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <figcaption>At 30 m a stock OS1-64 can drive past a <b>six-metre-wide</b> ditch and register
+  nothing at all.</figcaption>
+</section>
+
+<section>
+  <p class="eyebrow">The number nobody publishes</p>
+  <h2>That geometry is also a speed limit.</h2>
+  <div class="stat">
+    <span class="v">23<span class="u">km/h</span></span>
+    <span class="t">for a vehicle that must never enter a one-metre ditch</span>
+  </div>
+  <div class="derive">
+    a 1 m ditch is guaranteed straddled beyond &nbsp;<b>12 m</b><br>
+    braking model &nbsp;0.3 s reaction · 2.0 m/s² decel<br>
+    → &nbsp;6.35 m/s &nbsp;=&nbsp; <b>22.9 km/h</b>
+  </div>
+  <p>The sensor gives no indication that this is so. You can compute it for any lidar and any
+  platform from four numbers, and it is actionable before a line of our software ships.</p>
+</section>
+
+<section>
+  <p class="eyebrow">The contribution</p>
+  <h2>The same quadratic, normalised, becomes the detector.</h2>
+  <p>If two adjacent beams both return, they should land a predictable distance apart. If the
+  far one lands much further out than predicted, the surface between them dropped away.
+  Dividing by the prediction makes the test range-independent —
+  <strong>one threshold works at 10 m and at 40 m.</strong></p>
+  <div class="panel" style="margin-top:22px">
+    <div class="mono" style="font-size:clamp(14px,3.1vw,18px); font-weight:500; color:var(--hit)">
+      anomaly = measured gap ÷ predicted gap
+    </div>
+  </div>
+
+  <div class="chart">
+    <svg viewBox="0 0 660 300" role="img" aria-label="Grouped bar chart of negative obstacles detected at four point budgets. The prior method reaches 6.7, 9.7, 11.3 and 15.2 percent at 2, 5, 8.6 and 100 percent of the point budget. The gap test reaches 74.9, 91.4, 96.0 and 99.8 percent at the same budgets.">
+      <g font-family="JetBrains Mono, monospace" font-size="11" fill="var(--ink-3)">
+        <line x1="56" y1="246" x2="648" y2="246" stroke="var(--rule)" stroke-width="1"/>
+        <line x1="56" y1="193.5" x2="648" y2="193.5" stroke="var(--rule-2)" stroke-width="1"/>
+        <line x1="56" y1="141" x2="648" y2="141" stroke="var(--rule-2)" stroke-width="1"/>
+        <line x1="56" y1="88.5" x2="648" y2="88.5" stroke="var(--rule-2)" stroke-width="1"/>
+        <line x1="56" y1="36" x2="648" y2="36" stroke="var(--rule-2)" stroke-width="1"/>
+        <text x="48" y="250" text-anchor="end">0</text>
+        <text x="48" y="197" text-anchor="end">25</text>
+        <text x="48" y="145" text-anchor="end">50</text>
+        <text x="48" y="92" text-anchor="end">75</text>
+        <text x="48" y="40" text-anchor="end">100</text>
+      </g>
+      <!-- group 1: 2% budget -->
+      <rect x="82"  y="231.9" width="44" height="14.1"  fill="var(--miss)" rx="1"/>
+      <rect x="130" y="88.7"  width="44" height="157.3" fill="var(--hit)"  rx="1"/>
+      <text x="104" y="224" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" font-weight="700" fill="var(--miss)">6.7</text>
+      <text x="152" y="81"  text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" font-weight="700" fill="var(--hit)">74.9</text>
+      <text x="128" y="268" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13" font-weight="600" fill="var(--ink-2)">2%</text>
+      <!-- group 2: 5% budget -->
+      <rect x="230" y="225.6" width="44" height="20.4"  fill="var(--miss)" rx="1"/>
+      <rect x="278" y="54.1"  width="44" height="191.9" fill="var(--hit)"  rx="1"/>
+      <text x="252" y="218" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" font-weight="700" fill="var(--miss)">9.7</text>
+      <text x="300" y="46"  text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" font-weight="700" fill="var(--hit)">91.4</text>
+      <text x="276" y="268" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13" font-weight="600" fill="var(--ink)">5%</text>
+      <!-- group 3: 8.6% budget -->
+      <rect x="378" y="222.3" width="44" height="23.7"  fill="var(--miss)" rx="1"/>
+      <rect x="426" y="44.4"  width="44" height="201.6" fill="var(--hit)"  rx="1"/>
+      <text x="400" y="215" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" font-weight="700" fill="var(--miss)">11.3</text>
+      <text x="448" y="37"  text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" font-weight="700" fill="var(--hit)">96.0</text>
+      <text x="424" y="268" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13" font-weight="600" fill="var(--ink-2)">8.6%</text>
+      <!-- group 4: full scan -->
+      <rect x="526" y="214.1" width="44" height="31.9"  fill="var(--miss)" rx="1"/>
+      <rect x="574" y="36.4"  width="44" height="209.6" fill="var(--hit)"  rx="1"/>
+      <text x="548" y="207" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" font-weight="700" fill="var(--miss)">15.2</text>
+      <text x="596" y="29"  text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" font-weight="700" fill="var(--hit)">99.8</text>
+      <text x="572" y="268" text-anchor="middle" font-family="Archivo, sans-serif" font-size="13" font-weight="600" fill="var(--ink-2)">100%</text>
+      <text x="352" y="291" text-anchor="middle" font-family="Archivo, sans-serif" font-size="12.5" fill="var(--ink-3)">point budget — share of a full scan actually spent</text>
+    </svg>
+    <div class="legend">
+      <span><i style="background:var(--miss)"></i>prior method</span>
+      <span><i style="background:var(--hit)"></i>range-normalised gap test</span>
+    </div>
+  </div>
+  <figcaption style="margin-top:18px"><b>91.4% of negative obstacles at 5% of the points.</b>
+  The prior method never clears 16% — even with every ray it has. And ours runs in
+  <b>1.5 ms</b> a frame on a 2.1 GHz CPU, 67× inside a 100 ms frame at 10 Hz.</figcaption>
+</section>
+
+<section>
+  <p class="eyebrow">What we got wrong</p>
+  <h2>The most useful thing we did was disprove our own idea.</h2>
+
+  <div class="honest">
+    <div class="item">
+      <h3><span class="tag">disproved</span>Our headline idea lost.</h3>
+      <p>We set out to show that <em>smart ray allocation</em> was the win. We built three
+      allocators and measured them. On whole-map recall, plain uniform decimation beat all of
+      them — 91.4% against 79.3% at a 5% budget. The real contribution turned out to be the
+      detector, which needs no allocator at all. <strong>We changed the claim to match the
+      measurement instead of the other way round.</strong></p>
+    </div>
+    <div class="item">
+      <h3><span class="tag">corrected</span>A number on our own slide was wrong by 29×.</h3>
+      <p>We had been quoting "43 ms per frame". Building a proper benchmark showed it was
+      never written to a CSV and did not reproduce — it was a full-scan cost quoted next to a
+      5%-budget result. The real figure is <strong>1.5 ms</strong>. The error understated us,
+      and we published the correction rather than quietly swapping the number.</p>
+    </div>
+    <div class="item">
+      <h3><span class="tag">withdrawn</span>We claimed zero false positives. We were wrong.</h3>
+      <p>We had measured it on a single azimuth column. Across a full scan, rolling terrain
+      produced 70 flags. We withdrew the claim, then found out what those flags actually were:
+      <strong>crest occlusions</strong> — the ground rises, the far beam clears it, and the
+      shadow behind reads exactly like a hole. A crest is reached <em>uphill</em> and a ditch
+      is not; the two populations don't overlap (0.039 against 0.069). That one test took
+      false flags from 436 cells to 5.</p>
+    </div>
+    <div class="item">
+      <h3><span class="tag">standing</span>Precision is 79%, and that is a choice.</h3>
+      <p>We can reach 87.5% — the levers are in the code. Every setting that gets there moves
+      the share of real ditch cells we'd call <em>drivable</em> off <strong>0.00%</strong>.
+      On a system whose whole claim is that it never turns "I did not look there" into "safe
+      to drive", that column outranks the precision column. We ship the honest row and commit
+      the curve.</p>
+    </div>
+    <div class="item">
+      <h3><span class="tag">open</span>Zero frames of real sensor data. So far.</h3>
+      <p>Everything above is a controlled testbed where ground truth is <em>known</em> rather
+      than inferred — deliberately, because public off-road datasets contain almost no
+      labelled ditches, so scoring against them means scoring against the sensor's own blind
+      spot. RELLIS-3D corroboration is the next task, and until it runs we quote no result
+      from it.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <p class="eyebrow">How it is held together</p>
+  <h2>Every number here comes from a committed CSV.</h2>
+  <div class="rig">
+    <div><span class="v">108</span><div class="k">tests, pinning the physics rather than the plumbing</div></div>
+    <div><span class="v">0.00e+00</span><div class="k">largest difference on a clean-room rebuild</div></div>
+    <div><span class="v">0.00%</span><div class="k">real hazards ever called drivable</div></div>
+    <div><span class="v">4</span><div class="k">runtime dependencies — NumPy and three others</div></div>
+  </div>
+  <p>The whole result set rebuilds from an empty virtualenv and reproduces bit-identically,
+  13 metrics compared. No learning, no training data, no GPU — a closed-form geometric bound
+  you can argue in a safety case, which is the point when the customer has to certify it.</p>
+</section>
+
+<footer>
+  <p class="eyebrow">Team Raysense</p>
+  <p style="margin-top:14px">Built for Smart India Hackathon 2026, problem statement SIH26053
+  (DRDO) — <em>Adaptive Variable Resolution 2.5D Lidar Mapping for Dynamic Environment
+  Perception</em>.</p>
+  <p class="sig">
+    code &amp; data &nbsp;·&nbsp; <a href="https://github.com/jnanottamgy/Raysense_sih">github.com/jnanottamgy/Raysense_sih</a><br>
+    sensor &nbsp;·&nbsp; Ouster OS1-64 · Δθ 0.714° · 1.8 m mast<br>
+    prior art &nbsp;·&nbsp; RELLIS-3D (ICRA 2021) · NEC Labs foveating lidar · AEye iDAR · DTIC ADA561293
+  </p>
+</footer>
+
+</div>
